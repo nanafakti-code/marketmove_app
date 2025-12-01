@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<AuthProvider>(
+        ChangeNotifierProvider<AuthProvider>(
           create: (_) => AuthProvider(supabase: Supabase.instance.client),
         ),
       ],

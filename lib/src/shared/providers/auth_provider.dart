@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/email_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final SupabaseClient supabase;
@@ -29,6 +30,19 @@ class AuthProvider extends ChangeNotifier {
 
       if (response.user != null) {
         // El trigger en BD creará el registro en users
+        
+        // Enviar email de bienvenida (sin bloquear si falla)
+        try {
+          await EmailService.sendWelcomeEmail(
+            email: email,
+            fullName: fullName,
+            businessName: businessName,
+          );
+        } catch (emailError) {
+          print('⚠️ Advertencia: No se pudo enviar email de bienvenida - $emailError');
+          // No lanzamos el error para no bloquear el registro
+        }
+        
         notifyListeners();
       }
     } catch (e) {

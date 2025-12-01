@@ -1,22 +1,63 @@
-# MarketMove App 🛒
+# 📱 MarketMove App - Gestión de Comercios Móvil
 
-**MarketMove** es una aplicación móvil profesional desarrollada en Flutter para la gestión integral de negocios. Permite administrar ventas, gastos, productos e inventario de forma eficiente y moderna.
+<div align="center">
 
-## 📋 Descripción del Proyecto
+![Flutter](https://img.shields.io/badge/Flutter-3.35.7-blue?logo=flutter)
+![Dart](https://img.shields.io/badge/Dart-3.9.2-blue?logo=dart)
+![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green?logo=supabase)
+![License](https://img.shields.io/badge/License-Proprietary-red)
+![Status](https://img.shields.io/badge/Status-En%20Desarrollo-yellow)
 
-MarketMove es una solución completa para pequeños y medianos negocios que necesitan:
-- Gestión de ventas y transacciones
-- Control de gastos operativos
-- Administración de inventario y productos
-- Panel de resumen con métricas clave
-- Sistema de autenticación de usuarios
+**Aplicación móvil profesional para gestión integral de pequeños comercios**
 
-## 🚀 Tecnologías Utilizadas
+[📋 Características](#-características) • [🚀 Quick Start](#-quick-start) • [📁 Estructura](#-estructura) • [🔐 Seguridad](#-seguridad) • [📚 Documentación](#-documentación)
 
-- **Flutter** 3.35.7 - Framework de desarrollo multiplataforma
-- **Dart** 3.9.2 - Lenguaje de programación
-- **Material Design 3** - Sistema de diseño moderno
-- **Supabase** (Próximamente) - Backend as a Service para autenticación y base de datos
+</div>
+
+---
+
+## 📊 Descripción General
+
+**MarketMove App** es una solución completa desarrollada en **Flutter** para que dueños de pequeños comercios puedan:
+
+- 💰 **Registrar ventas** de forma rápida y sencilla
+- 💸 **Controlar gastos** (arriendo, servicios, proveedores, etc.)
+- 📦 **Gestionar productos** e inventario en tiempo real
+- 📊 **Ver ganancias netas** mediante dashboards visuales
+- 🔐 **Acceso seguro** desde iOS o Android
+
+### Beneficios Principales
+
+| Beneficio | Descripción |
+|-----------|------------|
+| **Multiplataforma** | iOS + Android con un único código |
+| **Seguridad** | Row Level Security en base de datos |
+| **Escalable** | Infraestructura en la nube (Supabase) |
+| **Modern UI** | Material Design 3 |
+| **Offline Ready** | Funciona sin conexión (sincroniza después) |
+
+---
+
+## 🚀 Tecnologías y Stack
+
+### Frontend
+- **Flutter 3.35.7** - Framework UI multiplataforma
+- **Dart 3.9.2** - Lenguaje de programación
+- **Material Design 3** - Sistema de diseño
+- **Provider** - State Management
+- **Supabase Client** - Cliente para BD
+
+### Backend
+- **Supabase** - Backend as a Service
+- **PostgreSQL** - Base de datos relacional
+- **Row Level Security** - Seguridad de datos
+- **JWT Authentication** - Autenticación segura
+
+### DevOps & Herramientas
+- **GitHub** - Control de versiones
+- **Firebase** - Analytics y Crash reporting
+- **Google Play Store** - Distribución Android
+- **Apple App Store** - Distribución iOS
 
 ## 📁 Estructura del Proyecto
 

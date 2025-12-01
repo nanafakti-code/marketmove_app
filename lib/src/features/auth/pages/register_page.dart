@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/animated_button.dart';
 import '../../../shared/providers/auth_provider.dart';
+import '../../../core/utils/responsive_helper.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -411,7 +412,9 @@ class _RegisterPageState extends State<RegisterPage>
                           // Register button
                           AnimatedGradientButton(
                             text: _isLoading ? 'Creando...' : 'Crear Cuenta',
-                            onPressed: _isLoading ? () {} : _handleRegister,
+                            onPressed: _isLoading 
+                              ? () {} 
+                              : () => _handleRegister(),
                             gradient: AppColors.pinkGradient,
                             icon: Icons.arrow_forward_rounded,
                           ),

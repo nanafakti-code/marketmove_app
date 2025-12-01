@@ -1,4 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:ui';
+import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/animated_button.dart';
+import '../../../shared/providers/auth_provider.dart';
+import '../../../shared/repositories/data_repository.dart';
+import '../../../core/models/venta_model.dart';
+import '../dialogs/crear_venta_dialog.dart';
 
 class VentasPage extends StatefulWidget {
   const VentasPage({super.key});
@@ -7,90 +16,238 @@ class VentasPage extends StatefulWidget {
   State<VentasPage> createState() => _VentasPageState();
 }
 
-class _VentasPageState extends State<VentasPage> {
+class _VentasPageState extends State<VentasPage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late DataRepository _dataRepository;
+  List<Venta> _ventas = [];
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+    _controller.forward();
+
+    // Inicializar repositorio
+    _dataRepository = DataRepository(supabase: Supabase.instance.client);
+  }
+
+  void _mostrarDialogoCrearVenta() {
+    final authProvider = context.read<AuthProvider>();
+    final userId = authProvider.currentUser?.id;
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('❌ Error: Usuario no autenticado')),
+      );
+      return;
+    }
+
+    final pageContext = context; // Guardar contexto de la página
+    
+    showDialog(
+      context: context,
+      builder: (dialogContext) => CrearVentaDialog(
+        userId: userId,
+        onVentaCreada: (venta) async {
+          try {
+            // Crear la venta
+            await _dataRepository.crearVenta(venta);
+            
+            // Cerrar el diálogo
+            if (mounted) Navigator.pop(dialogContext);
+            
+            // Mostrar mensaje usando contexto de la página (no del diálogo)
+            if (mounted) {
+              ScaffoldMessenger.of(pageContext).showSnackBar(
+                const SnackBar(
+                  content: Text('✅ Venta creada exitosamente'),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+              setState(() {});
+            }
+          } catch (e) {
+            // Cerrar el diálogo incluso si hay error
+            if (mounted) Navigator.pop(dialogContext);
+            
+            if (mounted) {
+              ScaffoldMessenger.of(pageContext).showSnackBar(
+                SnackBar(
+                  content: Text('❌ Error: $e'),
+                  backgroundColor: Colors.red,
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+            }
+          }
+        },
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isSmallScreen = size.width < 600;
+
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Ventas'),
-        centerTitle: true,
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.successGradient),
+        ),
       ),
       drawer: _buildDrawer(context),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Summary cards
-            Row(
-              children: [
-                Expanded(
-                  child: _buildSummaryCard(
-                    'Total Ventas',
-                    '\$0.00',
-                    Icons.attach_money,
-                    Colors.green,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [AppColors.success.withOpacity(0.1), AppColors.offWhite],
+          ),
+        ),
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(isSmallScreen ? 16.0 : 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Summary cards
+                  isSmallScreen
+                      ? Column(
+                          children: [
+                            _buildSummaryCard(
+                              'Total Ventas',
+                              '\$0.00',
+                              Icons.attach_money_rounded,
+                              AppColors.successGradient,
+                            ),
+                            const SizedBox(height: 16),
+                            _buildSummaryCard(
+                              'Ventas Hoy',
+                              '0',
+                              Icons.today_rounded,
+                              AppColors.primaryGradient,
+                            ),
+                          ],
+                        )
+                      : Row(
+                          children: [
+                            Expanded(
+                              child: _buildSummaryCard(
+                                'Total Ventas',
+                                '\$0.00',
+                                Icons.attach_money_rounded,
+                                AppColors.successGradient,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildSummaryCard(
+                                'Ventas Hoy',
+                                '0',
+                                Icons.today_rounded,
+                                AppColors.primaryGradient,
+                              ),
+                            ),
+                          ],
+                        ),
+                  const SizedBox(height: 24),
+
+                  // Add sale button
+                  AnimatedGradientButton(
+                    text: 'Registrar Nueva Venta',
+                    onPressed: _mostrarDialogoCrearVenta,
+                    gradient: AppColors.successGradient,
+                    icon: Icons.add_rounded,
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildSummaryCard(
-                    'Ventas Hoy',
-                    '0',
-                    Icons.today,
-                    Colors.blue,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
+                  const SizedBox(height: 32),
 
-            // Add sale button
-            ElevatedButton.icon(
-              onPressed: () {
-                // TODO: Navigate to add sale form
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Funcionalidad en desarrollo')),
-                );
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Registrar Nueva Venta'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Sales list header
-            Text(
-              'Historial de Ventas',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-
-            // Sales list placeholder
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.receipt_long, size: 80, color: Colors.grey[400]),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No hay ventas registradas',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                  // Sales list header
+                  Text(
+                    'Historial de Ventas',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.almostBlack,
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Sales list placeholder
+                  Container(
+                    constraints: const BoxConstraints(minHeight: 300),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              gradient: AppColors.successGradient,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.receipt_long_rounded,
+                              size: 64,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'No hay ventas registradas',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.darkGray,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Comienza registrando tu primera venta',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.mediumGray,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -100,29 +257,131 @@ class _VentasPageState extends State<VentasPage> {
     String title,
     String value,
     IconData icon,
-    Color color,
+    Gradient gradient,
   ) {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Icon(icon, size: 40, color: color),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 12),
-              textAlign: TextAlign.center,
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: (gradient as LinearGradient).colors.first.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: color,
+            child: Icon(icon, color: Colors.white, size: 28),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.white.withOpacity(0.9),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawer(BuildContext context) {
+    return Drawer(
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF10b981), Color(0xFF059669), Color(0xFF047857)],
+          ),
+        ),
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(gradient: AppColors.successGradient),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.shopping_cart_rounded,
+                      size: 40,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'MarketMove',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
+            ),
+            _buildDrawerItem(
+              Icons.dashboard_rounded,
+              'Resumen',
+              false,
+              () => Navigator.pushReplacementNamed(context, '/resumen'),
+            ),
+            _buildDrawerItem(
+              Icons.attach_money_rounded,
+              'Ventas',
+              true,
+              () => Navigator.pop(context),
+            ),
+            _buildDrawerItem(
+              Icons.money_off_rounded,
+              'Gastos',
+              false,
+              () => Navigator.pushReplacementNamed(context, '/gastos'),
+            ),
+            _buildDrawerItem(
+              Icons.inventory_rounded,
+              'Productos',
+              false,
+              () => Navigator.pushReplacementNamed(context, '/productos'),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Divider(color: Colors.white24),
+            ),
+            _buildDrawerItem(
+              Icons.logout_rounded,
+              'Cerrar Sesión',
+              false,
+              () => Navigator.pushReplacementNamed(context, '/login'),
             ),
           ],
         ),
@@ -130,59 +389,25 @@ class _VentasPageState extends State<VentasPage> {
     );
   }
 
-  Widget _buildDrawer(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          DrawerHeader(
-            decoration: BoxDecoration(color: Colors.green),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: const [
-                Icon(Icons.shopping_cart, size: 48, color: Colors.white),
-                SizedBox(height: 8),
-                Text(
-                  'MarketMove',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.dashboard),
-            title: const Text('Resumen'),
-            onTap: () => Navigator.pushReplacementNamed(context, '/resumen'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.attach_money),
-            title: const Text('Ventas'),
-            selected: true,
-            onTap: () => Navigator.pop(context),
-          ),
-          ListTile(
-            leading: const Icon(Icons.money_off),
-            title: const Text('Gastos'),
-            onTap: () => Navigator.pushReplacementNamed(context, '/gastos'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.inventory),
-            title: const Text('Productos'),
-            onTap: () => Navigator.pushReplacementNamed(context, '/productos'),
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Cerrar Sesión'),
-            onTap: () => Navigator.pushReplacementNamed(context, '/login'),
-          ),
-        ],
+  Widget _buildDrawerItem(
+    IconData icon,
+    String title,
+    bool selected,
+    VoidCallback onTap,
+  ) {
+    return ListTile(
+      leading: Icon(icon, color: selected ? Colors.white : Colors.white70),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: selected ? Colors.white : Colors.white70,
+          fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+        ),
       ),
+      selected: selected,
+      selectedTileColor: Colors.white.withOpacity(0.1),
+      onTap: onTap,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/animated_button.dart';
 import '../../../shared/providers/auth_provider.dart';
+import '../../../core/utils/responsive_helper.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -282,7 +283,9 @@ class _LoginPageState extends State<LoginPage>
                           // Login button
                           AnimatedGradientButton(
                             text: _isLoading ? 'Iniciando...' : 'Iniciar Sesión',
-                            onPressed: _isLoading ? null : _handleLogin,
+                            onPressed: _isLoading 
+                              ? () {} 
+                              : () => _handleLogin(),
                             gradient: AppColors.primaryGradient,
                             icon: Icons.arrow_forward_rounded,
                           ),
