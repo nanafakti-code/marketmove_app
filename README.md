@@ -1,0 +1,205 @@
+# MarketMove App 🛒
+
+**MarketMove** es una aplicación móvil profesional desarrollada en Flutter para la gestión integral de negocios. Permite administrar ventas, gastos, productos e inventario de forma eficiente y moderna.
+
+## 📋 Descripción del Proyecto
+
+MarketMove es una solución completa para pequeños y medianos negocios que necesitan:
+- Gestión de ventas y transacciones
+- Control de gastos operativos
+- Administración de inventario y productos
+- Panel de resumen con métricas clave
+- Sistema de autenticación de usuarios
+
+## 🚀 Tecnologías Utilizadas
+
+- **Flutter** 3.35.7 - Framework de desarrollo multiplataforma
+- **Dart** 3.9.2 - Lenguaje de programación
+- **Material Design 3** - Sistema de diseño moderno
+- **Supabase** (Próximamente) - Backend as a Service para autenticación y base de datos
+
+## 📁 Estructura del Proyecto
+
+```
+marketmove_app/
+├── lib/
+│   ├── main.dart                    # Punto de entrada de la aplicación
+│   └── src/
+│       ├── features/                # Módulos por funcionalidad
+│       │   ├── auth/               # Autenticación
+│       │   │   ├── pages/          # Pantallas de login y registro
+│       │   │   └── widgets/        # Componentes reutilizables
+│       │   ├── ventas/             # Gestión de ventas
+│       │   │   ├── pages/
+│       │   │   └── widgets/
+│       │   ├── gastos/             # Gestión de gastos
+│       │   │   ├── pages/
+│       │   │   └── widgets/
+│       │   ├── productos/          # Gestión de inventario
+│       │   │   ├── pages/
+│       │   │   └── widgets/
+│       │   └── resumen/            # Panel de control
+│       │       ├── pages/
+│       │       └── widgets/
+│       └── shared/                 # Recursos compartidos
+│           ├── models/             # Modelos de datos
+│           ├── services/           # Servicios (API, DB)
+│           ├── providers/          # Gestión de estado
+│           └── widgets/            # Widgets compartidos
+├── assets/
+│   ├── images/                     # Imágenes de la aplicación
+│   └── icons/                      # Iconos personalizados
+├── test/                           # Tests unitarios y de integración
+└── pubspec.yaml                    # Dependencias del proyecto
+```
+
+## 🛠️ Cómo Ejecutar el Proyecto
+
+### Requisitos Previos
+
+- Flutter SDK 3.35.7 o superior
+- Dart SDK 3.9.2 o superior
+- Android Studio / VS Code con extensiones de Flutter
+- Emulador Android o dispositivo físico
+
+### Pasos de Instalación
+
+1. **Clonar el repositorio**
+   ```bash
+   git clone https://github.com/TU_USUARIO/marketmove_app.git
+   cd marketmove_app
+   ```
+
+2. **Instalar dependencias**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Verificar la instalación de Flutter**
+   ```bash
+   flutter doctor
+   ```
+
+4. **Ejecutar la aplicación**
+   ```bash
+   flutter run
+   ```
+
+### Comandos Útiles
+
+```bash
+# Ejecutar en modo debug
+flutter run
+
+# Ejecutar en modo release
+flutter run --release
+
+# Limpiar el proyecto
+flutter clean
+
+# Actualizar dependencias
+flutter pub upgrade
+
+# Ejecutar tests
+flutter test
+
+# Generar APK
+flutter build apk
+
+# Generar App Bundle
+flutter build appbundle
+```
+
+## 📱 Funcionalidades Actuales
+
+### ✅ Implementado (MVP)
+
+- [x] Sistema de autenticación (UI)
+  - Pantalla de inicio de sesión
+  - Pantalla de registro
+  - Validación de formularios
+  
+- [x] Panel de Resumen
+  - Vista general de métricas
+  - Accesos rápidos a módulos
+  - Resumen financiero
+  
+- [x] Gestión de Ventas
+  - Interfaz para registro de ventas
+  - Historial de transacciones
+  - Resumen de ventas
+  
+- [x] Gestión de Gastos
+  - Interfaz para registro de gastos
+  - Historial de gastos
+  - Resumen de gastos
+  
+- [x] Gestión de Productos
+  - Interfaz de inventario
+  - Control de stock
+  - Búsqueda de productos
+
+- [x] Navegación
+  - Rutas configuradas
+  - Menú lateral (Drawer)
+  - Navegación fluida entre pantallas
+
+## 🔄 Fases del Proyecto
+
+### Fase 1: Estructura y UI Base ✅ (Completada)
+- Creación del proyecto Flutter
+- Estructura de carpetas profesional
+- Pantallas MVP con navegación
+- Sistema de rutas
+
+### Fase 2: Integración con Supabase 🚧 (Próximamente)
+- Configuración de Supabase
+- Autenticación real de usuarios
+- Base de datos para ventas, gastos y productos
+- Sincronización en tiempo real
+
+### Fase 3: Funcionalidad Completa 📋 (Planificada)
+- CRUD completo de ventas
+- CRUD completo de gastos
+- CRUD completo de productos
+- Generación de reportes
+- Gráficos y estadísticas
+
+### Fase 4: Mejoras y Optimización 🎯 (Planificada)
+- Modo offline
+- Exportación de datos (PDF, Excel)
+- Notificaciones push
+- Temas personalizables
+- Optimización de rendimiento
+
+## 👥 Integrantes del Equipo
+
+<!-- Editar esta sección con los datos del equipo -->
+
+| Nombre | Rol | Email |
+|--------|-----|-------|
+| [Tu Nombre] | Desarrollador Principal | tu.email@ejemplo.com |
+| [Nombre 2] | [Rol] | email@ejemplo.com |
+| [Nombre 3] | [Rol] | email@ejemplo.com |
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+
+## 🤝 Contribuciones
+
+Las contribuciones son bienvenidas. Por favor:
+
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## 📞 Contacto
+
+Para preguntas o sugerencias, por favor abre un issue en el repositorio.
+
+---
+
+**Desarrollado con ❤️ usando Flutter**
