@@ -106,6 +106,7 @@ class _ProductosPageState extends State<ProductosPage>
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.width < 600;
+    final userId = context.read<AuthProvider>().currentUser?.id ?? '';
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -207,56 +208,206 @@ class _ProductosPageState extends State<ProductosPage>
                   ),
                   const SizedBox(height: 16),
 
-                  // Products list placeholder
-                  Container(
-                    constraints: const BoxConstraints(minHeight: 300),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                  // Products list
+                  StreamBuilder<List<Producto>>(
+                    stream: _dataRepository.obtenerProductos(userId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Container(
+                          constraints: const BoxConstraints(minHeight: 300),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+
+                      if (snapshot.hasError) {
+                        return Container(
+                          constraints: const BoxConstraints(minHeight: 300),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text('Error: ${snapshot.error}'),
+                          ),
+                        );
+                      }
+
+                      final productos = snapshot.data ?? [];
+
+                      if (productos.isEmpty) {
+                        return Container(
+                          constraints: const BoxConstraints(minHeight: 300),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    gradient: AppColors.purpleGradient,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.inventory_rounded,
+                                    size: 64,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                Text(
+                                  'No hay productos registrados',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.darkGray,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Comienza agregando tu primer producto',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.mediumGray,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              gradient: AppColors.purpleGradient,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.inventory_rounded,
-                              size: 64,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'No hay productos registrados',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.darkGray,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Comienza agregando tu primer producto',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: AppColors.mediumGray,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: productos.length,
+                          separatorBuilder: (context, index) =>
+                              Divider(height: 1, color: Colors.grey[200]),
+                          itemBuilder: (context, index) {
+                            final producto = productos[index];
+                            return ListTile(
+                              leading: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  gradient: AppColors.purpleGradient,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.inventory_2_rounded,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              title: Text(
+                                producto.nombre,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'SKU: ${producto.sku}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  Text(
+                                    'Stock: ${producto.cantidad} | Precio: \$${producto.precio.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing: PopupMenuButton(
+                                itemBuilder: (context) => [
+                                  PopupMenuItem(
+                                    child: const Text('Eliminar'),
+                                    onTap: () async {
+                                      try {
+                                        if (producto.id != null) {
+                                          await _dataRepository
+                                              .eliminarProducto(producto.id!);
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                    'Producto eliminado'),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      } catch (e) {
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  'Error: $e'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

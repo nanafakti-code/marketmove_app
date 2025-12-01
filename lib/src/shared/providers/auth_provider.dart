@@ -31,17 +31,12 @@ class AuthProvider extends ChangeNotifier {
       if (response.user != null) {
         // El trigger en BD creará el registro en users
         
-        // Enviar email de bienvenida (sin bloquear si falla)
-        try {
-          await EmailService.sendWelcomeEmail(
-            email: email,
-            fullName: fullName,
-            businessName: businessName,
-          );
-        } catch (emailError) {
-          print('⚠️ Advertencia: No se pudo enviar email de bienvenida - $emailError');
-          // No lanzamos el error para no bloquear el registro
-        }
+        // Enviar email de bienvenida
+        await EmailService.sendWelcomeEmail(
+          email: email,
+          fullName: fullName,
+          businessName: businessName,
+        );
         
         notifyListeners();
       }

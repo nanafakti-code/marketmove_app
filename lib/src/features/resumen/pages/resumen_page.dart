@@ -30,8 +30,8 @@ class _ResumenPageState extends State<ResumenPage>
         CurvedAnimation(
           parent: _controller,
           curve: Interval(
-            index * 0.1,
-            0.6 + (index * 0.1),
+            (index * 0.08).clamp(0.0, 1.0),
+            ((index * 0.08) + 0.4).clamp(0.0, 1.0),
             curve: Curves.easeOut,
           ),
         ),
@@ -45,8 +45,8 @@ class _ResumenPageState extends State<ResumenPage>
             CurvedAnimation(
               parent: _controller,
               curve: Interval(
-                index * 0.1,
-                0.6 + (index * 0.1),
+                (index * 0.08).clamp(0.0, 1.0),
+                ((index * 0.08) + 0.4).clamp(0.0, 1.0),
                 curve: Curves.easeOut,
               ),
             ),

@@ -106,6 +106,7 @@ class _GastosPageState extends State<GastosPage>
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.width < 600;
+    final userId = context.read<AuthProvider>().currentUser?.id ?? '';
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -192,56 +193,206 @@ class _GastosPageState extends State<GastosPage>
                   ),
                   const SizedBox(height: 16),
 
-                  // Expenses list placeholder
-                  Container(
-                    constraints: const BoxConstraints(minHeight: 300),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                gradient: AppColors.errorGradient,
-                                shape: BoxShape.circle,
+                  // Expenses list
+                  StreamBuilder<List<Gasto>>(
+                    stream: _dataRepository.obtenerGastos(userId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Container(
+                          constraints: const BoxConstraints(minHeight: 300),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
                               ),
-                              child: Icon(
-                                Icons.receipt_rounded,
-                                size: 64,
-                                color: Colors.white,
+                            ],
+                          ),
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+
+                      if (snapshot.hasError) {
+                        return Container(
+                          constraints: const BoxConstraints(minHeight: 300),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
                               ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text('Error: ${snapshot.error}'),
+                          ),
+                        );
+                      }
+
+                      final gastos = snapshot.data ?? [];
+
+                      if (gastos.isEmpty) {
+                        return Container(
+                          constraints: const BoxConstraints(minHeight: 300),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    gradient: AppColors.errorGradient,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.receipt_rounded,
+                                    size: 64,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                Text(
+                                  'No hay gastos registrados',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.darkGray,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Comienza registrando tu primer gasto',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.mediumGray,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 24),
-                            Text(
-                              'No hay gastos registrados',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.darkGray,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Comienza registrando tu primer gasto',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: AppColors.mediumGray,
-                              ),
+                          ),
+                        );
+                      }
+
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
-                    ),
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: gastos.length,
+                          separatorBuilder: (context, index) =>
+                              Divider(height: 1, color: Colors.grey[200]),
+                          itemBuilder: (context, index) {
+                            final gasto = gastos[index];
+                            return ListTile(
+                              leading: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  gradient: AppColors.errorGradient,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.receipt_rounded,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              title: Text(
+                                gasto.descripcion,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Categoría: ${gasto.categoria}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  Text(
+                                    'Monto: \$${gasto.monto.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing: PopupMenuButton(
+                                itemBuilder: (context) => [
+                                  PopupMenuItem(
+                                    child: const Text('Eliminar'),
+                                    onTap: () async {
+                                      try {
+                                        if (gasto.id != null) {
+                                          await _dataRepository
+                                              .eliminarGasto(gasto.id!);
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                    'Gasto eliminado'),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      } catch (e) {
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  'Error: $e'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

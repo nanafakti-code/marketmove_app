@@ -106,6 +106,7 @@ class _VentasPageState extends State<VentasPage>
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.width < 600;
+    final userId = context.read<AuthProvider>().currentUser?.id ?? '';
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -193,56 +194,206 @@ class _VentasPageState extends State<VentasPage>
                   ),
                   const SizedBox(height: 16),
 
-                  // Sales list placeholder
-                  Container(
-                    constraints: const BoxConstraints(minHeight: 300),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                  // Sales list
+                  StreamBuilder<List<Venta>>(
+                    stream: _dataRepository.obtenerVentas(userId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Container(
+                          constraints: const BoxConstraints(minHeight: 300),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+
+                      if (snapshot.hasError) {
+                        return Container(
+                          constraints: const BoxConstraints(minHeight: 300),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text('Error: ${snapshot.error}'),
+                          ),
+                        );
+                      }
+
+                      final ventas = snapshot.data ?? [];
+
+                      if (ventas.isEmpty) {
+                        return Container(
+                          constraints: const BoxConstraints(minHeight: 300),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    gradient: AppColors.successGradient,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.receipt_long_rounded,
+                                    size: 64,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                Text(
+                                  'No hay ventas registradas',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.darkGray,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Comienza registrando tu primera venta',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.mediumGray,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              gradient: AppColors.successGradient,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.receipt_long_rounded,
-                              size: 64,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'No hay ventas registradas',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.darkGray,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Comienza registrando tu primera venta',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: AppColors.mediumGray,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: ventas.length,
+                          separatorBuilder: (context, index) =>
+                              Divider(height: 1, color: Colors.grey[200]),
+                          itemBuilder: (context, index) {
+                            final venta = ventas[index];
+                            return ListTile(
+                              leading: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  gradient: AppColors.successGradient,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.receipt_rounded,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              title: Text(
+                                venta.clienteNombre,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Venta #${venta.numeroVenta}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  Text(
+                                    'Total: \$${venta.total.toStringAsFixed(2)} | Estado: ${venta.estado}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing: PopupMenuButton(
+                                itemBuilder: (context) => [
+                                  PopupMenuItem(
+                                    child: const Text('Eliminar'),
+                                    onTap: () async {
+                                      try {
+                                        if (venta.id != null) {
+                                          await _dataRepository
+                                              .eliminarVenta(venta.id!);
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                    'Venta eliminada'),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      } catch (e) {
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  'Error: $e'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
