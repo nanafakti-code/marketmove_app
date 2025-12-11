@@ -65,11 +65,8 @@ class DataRepository {
     }
   }
 
-  // ==================== VENTAS ====================
   Future<Venta> crearVenta(Venta venta) async {
     try {
-      String? productName;
-
       // Primero, verificar y actualizar el stock del producto
       if (venta.productoId != null) {
         // Obtener el producto actual
@@ -80,7 +77,6 @@ class DataRepository {
             .single();
 
         final stockActual = productoResponse['cantidad'] as int;
-        productName = productoResponse['nombre'] as String;
 
         // Verificar que hay stock disponible
         if (stockActual <= 0) {
@@ -92,8 +88,6 @@ class DataRepository {
             .from('productos')
             .update({'cantidad': stockActual - 1})
             .eq('id', venta.productoId!);
-
-        print('✅ Stock actualizado: ${stockActual - 1}');
       }
 
       // Crear la venta
@@ -103,52 +97,46 @@ class DataRepository {
           .select()
           .single();
 
-      print('✅ Venta creada: ${response['id']}');
       final ventaCreada = Venta.fromMap(response);
-
-      // Generar PDF y enviar email de factura al cliente (fire and forget)
-      if (venta.clienteEmail.isNotEmpty && productName != null) {
-        _generarYEnviarFactura(
-          venta: venta,
-          ventaCreada: ventaCreada,
-          productName: productName,
-        );
-      }
-
+      
+      // Intentar enviar email (sin bloquear la venta)
+      _generarYEnviarFactura(venta: venta, ventaCreada: ventaCreada);
+      
       return ventaCreada;
     } catch (e) {
-      print('❌ Error creando venta: $e');
+      print('Error creando venta: $e');
       rethrow;
     }
   }
 
-  // Método privado para generar PDF y enviar email de factura (fire and forget)
-  Future<void> _generarYEnviarFactura({
+  // Generar PDF y enviar email (sin bloquear)
+  void _generarYEnviarFactura({
     required Venta venta,
     required Venta ventaCreada,
-    required String productName,
-  }) async {
-    try {
-      // 1. Generar PDF
-      final pdfService = PdfService();
-      final pdfBytes = await pdfService.generateInvoicePDF(
-        saleNumber: ventaCreada.numeroVenta,
-        clientName: venta.clienteNombre,
-        clientEmail: venta.clienteEmail,
-        productName: productName,
-        total: venta.total,
-        tax: venta.impuesto,
-        discount: venta.descuento,
-        paymentMethod: venta.metodoPago,
-        saleDate: venta.fecha ?? DateTime.now(),
-        notes: venta.notas,
-      );
-
-      // 2. Enviar email con el PDF
+  }) {
+    // Fire and forget - no esperar respuesta
+    Future.microtask(() async {
       try {
+        print('[Factura] Intentando enviar a: ${venta.clienteEmail}');
+        
+        // 1. Generar PDF de la factura
+        final pdfService = PdfService();
+        final pdfBytes = await pdfService.generateInvoicePDF(
+          saleNumber: ventaCreada.numeroVenta,
+          clientName: venta.clienteNombre,
+          clientEmail: venta.clienteEmail,
+          productName: 'Producto',
+          total: venta.total,
+          tax: venta.impuesto,
+          discount: venta.descuento,
+          paymentMethod: venta.metodoPago,
+          saleDate: venta.fecha ?? DateTime.now(),
+          notes: venta.notas,
+        );
+        
+        // 2. Enviar email con PDF adjunto
         final emailService = EmailService();
         await emailService.initialize();
-        
         final success = await emailService.sendInvoiceEmail(
           clientEmail: venta.clienteEmail,
           clientName: venta.clienteNombre,
@@ -159,21 +147,19 @@ class DataRepository {
           paymentMethod: venta.metodoPago,
           saleDate: venta.fecha ?? DateTime.now(),
           notes: venta.notas,
-          productName: productName,
+          productName: 'Producto',
           pdfBytes: pdfBytes,
         );
-
+        
         if (success) {
-          print('[Factura] Email enviado a ${venta.clienteEmail}');
+          print('[Factura] Email enviado exitosamente a ${venta.clienteEmail}');
         } else {
-          print('[Factura] Email no pudo ser enviado (sin credenciales configuradas)');
+          print('[Factura] No se pudo enviar email a ${venta.clienteEmail}');
         }
-      } catch (emailError) {
-        print('[Factura] No se pudo enviar email: $emailError');
+      } catch (e) {
+        print('[Factura] Error: $e');
       }
-    } catch (e) {
-      print('[Factura] Error generando/enviando (no crítico): $e');
-    }
+    });
   }
 
   Stream<List<Venta>> obtenerVentas(String userId) {

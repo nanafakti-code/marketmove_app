@@ -786,6 +786,12 @@ class _PerfilPageState extends State<PerfilPage>
               true,
               () => Navigator.pop(context),
             ),
+            _buildDrawerItem(
+              Icons.assessment_rounded,
+              'Informe Diario',
+              false,
+              () => Navigator.pushReplacementNamed(context, '/resumen'),
+            ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Divider(color: Colors.white24),

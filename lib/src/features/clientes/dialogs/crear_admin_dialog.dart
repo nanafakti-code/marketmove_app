@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/animated_button.dart';
+import '../../../shared/services/email_service.dart';
 
 class CrearAdminDialog extends StatefulWidget {
   const CrearAdminDialog({super.key});
@@ -86,6 +87,20 @@ class _CrearAdminDialogState extends State<CrearAdminDialog> {
           });
         } catch (empresasError) {
           debugPrint('Error al insertar en tabla empresas: $empresasError');
+        }
+
+        // Enviar email de bienvenida
+        try {
+          final emailService = EmailService();
+          await emailService.initialize();
+          await emailService.sendWelcomeEmail(
+            userEmail: _emailController.text.trim(),
+            fullName: _fullNameController.text.trim(),
+            businessName: _businessNameController.text.trim(),
+          );
+        } catch (emailError) {
+          debugPrint('[CrearAdminDialog] Error al enviar email de bienvenida: $emailError');
+          // Continuar aunque falle el email
         }
 
         if (mounted) {

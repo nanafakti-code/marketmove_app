@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/animated_button.dart';
 import '../../../shared/providers/auth_provider.dart';
+import '../../../shared/services/email_service.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -113,6 +114,20 @@ class _RegisterPageState extends State<RegisterPage>
         } catch (empresasError) {
           debugPrint('Error al insertar en tabla empresas: $empresasError');
           // Continuar incluso si falla la inserción de empresa
+        }
+
+        // Enviar email de bienvenida
+        try {
+          final emailService = EmailService();
+          await emailService.initialize();
+          await emailService.sendWelcomeEmail(
+            userEmail: _emailController.text.trim(),
+            fullName: _fullNameController.text.trim(),
+            businessName: _businessNameController.text.trim(),
+          );
+        } catch (emailError) {
+          debugPrint('[Register] Error al enviar email de bienvenida: $emailError');
+          // Continuar aunque falle el email
         }
       }
 

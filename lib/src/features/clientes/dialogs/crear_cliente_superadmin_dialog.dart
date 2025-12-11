@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../shared/services/email_service.dart';
 
 class CrearClienteSuperadminDialog extends StatefulWidget {
   final Function(Map<String, dynamic>) onClienteCreado;
@@ -425,19 +426,15 @@ class _CrearClienteSuperadminDialogState extends State<CrearClienteSuperadminDia
     });
 
     try {
-      // Crear usuario usando el Admin API sin autenticar (no desloguea al superadmin)
-      final adminAuth = Supabase.instance.client.auth.admin;
-      
-      final response = await adminAuth.createUser(
-        AdminUserAttributes(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-          userMetadata: {
-            'full_name': _fullNameController.text.trim(),
-            'business_name': _businessNameController.text.trim(),
-            'role': 'admin',
-          },
-        ),
+      // Crear usuario usando signUp en lugar de adminAuth.createUser
+      final response = await Supabase.instance.client.auth.signUp(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        data: {
+          'full_name': _fullNameController.text.trim(),
+          'business_name': _businessNameController.text.trim(),
+          'role': 'admin',
+        },
       );
 
       final newUserId = response.user?.id;
@@ -476,6 +473,20 @@ class _CrearClienteSuperadminDialogState extends State<CrearClienteSuperadminDia
         });
       } catch (empresasError) {
         debugPrint('Error al insertar en tabla empresas: $empresasError');
+      }
+
+      // Enviar email de bienvenida
+      try {
+        final emailService = EmailService();
+        await emailService.initialize();
+        await emailService.sendWelcomeEmail(
+          userEmail: _emailController.text.trim(),
+          fullName: _fullNameController.text.trim(),
+          businessName: _businessNameController.text.trim(),
+        );
+      } catch (emailError) {
+        debugPrint('[SuperadminDialog] Error al enviar email de bienvenida: $emailError');
+        // Continuar aunque falle el email
       }
 
       if (mounted) {

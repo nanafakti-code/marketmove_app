@@ -914,6 +914,12 @@ class _ClientesAdminPageState extends State<ClientesAdminPage>
               Icons.person_rounded,
               '/perfil',
             ),
+            _buildDrawerItem(
+              context,
+              'Informe Diario',
+              Icons.assessment_rounded,
+              '/resumen',
+            ),
             const Divider(color: Colors.white24),
             _buildDrawerItem(
               context,

@@ -5,8 +5,10 @@ import 'dart:ui';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/models/venta_model.dart';
 import '../../../core/models/gasto_model.dart';
+import '../../../core/models/producto_model.dart';
 import '../../../shared/repositories/data_repository.dart';
 import '../../../shared/providers/auth_provider.dart';
+import '../../../shared/services/email_service.dart';
 
 class ResumenPage extends StatefulWidget {
   const ResumenPage({super.key});
@@ -118,7 +120,6 @@ class _ResumenPageState extends State<ResumenPage>
     final clientesRoute = _getClientesRoute('superadmin');
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Panel SuperAdmin'),
         flexibleSpace: Container(
@@ -311,7 +312,6 @@ class _ResumenPageState extends State<ResumenPage>
   ) {
     final clientesRoute = _getClientesRoute('admin');
     return Scaffold(
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Panel de Resumen'),
         flexibleSpace: Container(
@@ -1006,6 +1006,15 @@ class _ResumenPageState extends State<ResumenPage>
               false,
               () => Navigator.pushReplacementNamed(context, '/perfil'),
             ),
+            _buildDrawerItem(
+              Icons.assessment_rounded,
+              'Informe Diario',
+              false,
+              () {
+                Navigator.pop(context);
+                _enviarInformeDiario(context);
+              },
+            ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Divider(color: Colors.white24),
@@ -1044,4 +1053,175 @@ class _ResumenPageState extends State<ResumenPage>
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
+
+  Future<void> _enviarInformeDiario(BuildContext context) async {
+    final authProvider = context.read<AuthProvider>();
+    final currentUser = authProvider.currentUser;
+    
+    if (currentUser == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error: No se pudo obtener los datos del usuario')),
+      );
+      return;
+    }
+
+    // Mostrar indicador de carga
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('📊 Generando informe diario...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    try {
+      // Obtener datos de ventas (desde stream) - con timeout
+      final ventasStream = _dataRepository.obtenerVentas(currentUser.id);
+      final gastoStream = _dataRepository.obtenerGastos(currentUser.id);
+      final productosStream = _dataRepository.obtenerProductos(currentUser.id);
+
+      List<Venta> ventas = [];
+      List<Gasto> gastos = [];
+      List<Producto> productos = [];
+
+      // Escuchar streams con timeout de 5 segundos
+      try {
+        ventas = await ventasStream.first.timeout(const Duration(seconds: 5));
+      } catch (_) {
+        ventas = [];
+      }
+
+      try {
+        gastos = await gastoStream.first.timeout(const Duration(seconds: 5));
+      } catch (_) {
+        gastos = [];
+      }
+
+      try {
+        productos = await productosStream.first.timeout(const Duration(seconds: 5));
+      } catch (_) {
+        productos = [];
+      }
+
+      // Filtrar datos de hoy
+      final hoy = DateTime.now();
+      final ventasHoy = ventas.where((v) {
+        final fechaVenta = v.fecha;
+        return fechaVenta != null &&
+            fechaVenta.year == hoy.year &&
+            fechaVenta.month == hoy.month &&
+            fechaVenta.day == hoy.day;
+      }).toList();
+
+      final gastosHoy = gastos.where((g) {
+        final fechaGasto = g.fecha;
+        return fechaGasto != null &&
+            fechaGasto.year == hoy.year &&
+            fechaGasto.month == hoy.month &&
+            fechaGasto.day == hoy.day;
+      }).toList();
+
+      // Calcular métricas
+      final totalVentas = ventasHoy.length;
+      final ingresoTotal = ventasHoy.fold<double>(0, (sum, v) => sum + v.total);
+      final egresosTotal = gastosHoy.fold<double>(0, (sum, g) => sum + g.monto);
+
+      // Productos activos y bajo stock
+      final productosActivos = productos.length;
+      final productosBajoStock = productos.where((p) => p.cantidad <= 10).length;
+
+      // Obtener producto más vendido (por productoId)
+      Map<String, dynamic> topProduct = {'nombre': 'Sin datos', 'cantidad': 0, 'ingresos': 0.0};
+      if (ventasHoy.isNotEmpty && productos.isNotEmpty) {
+        final productoCounts = <String?, Map<String, dynamic>>{};
+        for (var venta in ventasHoy) {
+          final pId = venta.productoId;
+          if (!productoCounts.containsKey(pId)) {
+            productoCounts[pId] = {'cantidad': 0, 'ingresos': 0.0, 'nombre': ''};
+          }
+          productoCounts[pId]!['cantidad'] =
+              (productoCounts[pId]!['cantidad'] as int) + 1;
+          productoCounts[pId]!['ingresos'] =
+              (productoCounts[pId]!['ingresos'] as double) + venta.total;
+          
+          // Obtener nombre del producto
+          if (pId != null) {
+            final prod = productos.firstWhere(
+              (p) => p.id == pId,
+              orElse: () => Producto(
+                id: pId,
+                userId: currentUser.id,
+                nombre: 'Producto #${pId.substring(0, 8)}',
+                precio: 0,
+                cantidad: 0,
+                sku: '',
+                categoria: '',
+              ),
+            );
+            productoCounts[pId]!['nombre'] = prod.nombre;
+          }
+        }
+
+        if (productoCounts.isNotEmpty) {
+          var maxVenta = productoCounts.entries.first;
+          for (var entry in productoCounts.entries) {
+            if ((entry.value['cantidad'] as int) > (maxVenta.value['cantidad'] as int)) {
+              maxVenta = entry;
+            }
+          }
+
+          topProduct = {
+            'nombre': maxVenta.value['nombre'] ?? 'Producto',
+            'cantidad': maxVenta.value['cantidad'],
+            'ingresos': maxVenta.value['ingresos'],
+          };
+        }
+      }
+
+      // Enviar email
+      final emailService = EmailService();
+      final success = await emailService.sendDailyReportEmail(
+        userEmail: currentUser.email ?? '',
+        userName: currentUser.userMetadata?['full_name'] ?? 'Usuario',
+        businessName: currentUser.userMetadata?['business_name'] ?? 'Mi Negocio',
+        totalVentas: totalVentas,
+        totalGastos: gastosHoy.length,
+        ingresoTotal: ingresoTotal,
+        egresosTotal: egresosTotal,
+        ganancia: ingresoTotal - egresosTotal,
+        productosActivos: productosActivos,
+        productosBajoStock: productosBajoStock,
+        topProduct: topProduct,
+      );
+
+      if (!mounted) return;
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Informe diario enviado correctamente'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ Error al enviar el informe'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
 }
+

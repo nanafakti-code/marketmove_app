@@ -780,6 +780,15 @@ class _VentasPageState extends State<VentasPage>
               false,
               () => Navigator.pushReplacementNamed(context, '/perfil'),
             ),
+            _buildDrawerItem(
+              Icons.assessment_rounded,
+              'Informe Diario',
+              false,
+              () {
+                Navigator.pop(context);
+                Navigator.pushReplacementNamed(context, '/resumen');
+              },
+            ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Divider(color: Colors.white24),
