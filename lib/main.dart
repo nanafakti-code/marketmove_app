@@ -17,27 +17,38 @@ import 'src/shared/providers/auth_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Cargar variables de entorno (si existen)
+  String supabaseUrl = 'https://zzaobtowduhjeivrmjhn.supabase.co';
+  String supabaseAnonKey =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp6YW9idG93ZHVoamVpdnJtamhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MjcxODMsImV4cCI6MjA4MDEwMzE4M30.f9dSOGXfuWS0VbV1LZGtEqQggGoKzFtRkQnKdbwv2nk';
+
+  // Intentar cargar variables de entorno desde .env
+  // Si falla, usar las credenciales hardcodeadas arriba
   try {
     await dotenv.load(fileName: ".env");
+    final loadedUrl = dotenv.env['SUPABASE_URL'];
+    final loadedKey = dotenv.env['SUPABASE_ANON_KEY'];
+
+    if (loadedUrl != null && loadedUrl.isNotEmpty) {
+      supabaseUrl = loadedUrl;
+    }
+    if (loadedKey != null && loadedKey.isNotEmpty) {
+      supabaseAnonKey = loadedKey;
+    }
+    print('[dotenv] Variables cargadas correctamente desde .env');
   } catch (e) {
-    print('⚠️ Archivo .env no encontrado. Usando valores por defecto o variables del sistema.');
-    print('   Copia .env.example a .env y configura los valores.');
+    print('[dotenv] No se pudo cargar .env, usando credenciales predeterminadas');
+    print('   Error: $e');
   }
 
-  // Obtener valores de Supabase (con fallback a strings vacíos)
-  final supabaseUrl = dotenv.maybeGet('SUPABASE_URL') ?? '';
-  final supabaseAnonKey = dotenv.maybeGet('SUPABASE_ANON_KEY') ?? '';
-
-  // Inicializar Supabase (siempre, incluso con valores vacíos para demo)
+  // Inicializar Supabase con las credenciales
   try {
     await Supabase.initialize(
-      url: supabaseUrl.isEmpty ? 'https://example.supabase.co' : supabaseUrl,
-      anonKey: supabaseAnonKey.isEmpty ? 'example-key' : supabaseAnonKey,
+      url: supabaseUrl,
+      anonKey: supabaseAnonKey,
     );
+    print('[Supabase] Inicializado correctamente en: $supabaseUrl');
   } catch (e) {
-    print('⚠️ Error inicializando Supabase: $e');
-    print('   La app funcionará en modo demo sin conexión a base de datos');
+    print('[Supabase] Error durante inicialización: $e');
   }
 
   runApp(const MyApp());
