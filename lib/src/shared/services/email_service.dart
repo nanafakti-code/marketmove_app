@@ -113,12 +113,14 @@ class EmailService {
               fromEmail = envMap['BREVO_SENDER_EMAIL'] ?? 'noreply@marketmove.app';
             }
           }
-        } catch (_) {
+        } catch (e) {
+          print('[EmailService] Error al leer .env: $e');
           return false;
         }
       }
 
       if (smtpServer == null) {
+        print('[EmailService] SMTP Server no inicializado');
         return false;
       }
 
@@ -134,7 +136,8 @@ class EmailService {
 
       await send(message, smtpServer);
       return true;
-    } catch (_) {
+    } catch (e) {
+      print('[EmailService] Error enviando email: $e');
       return false;
     }
   }
