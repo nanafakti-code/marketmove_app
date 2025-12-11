@@ -143,14 +143,13 @@ class DataRepository {
         saleDate: venta.fecha ?? DateTime.now(),
         notes: venta.notas,
       );
-      print('✅ PDF generado para factura #${ventaCreada.numeroVenta}');
 
       // 2. Enviar email con el PDF
       try {
         final emailService = EmailService();
-        // Inicializar el servicio antes de enviar
         await emailService.initialize();
-        await emailService.sendInvoiceEmail(
+        
+        final success = await emailService.sendInvoiceEmail(
           clientEmail: venta.clienteEmail,
           clientName: venta.clienteNombre,
           saleNumber: ventaCreada.numeroVenta,
@@ -163,13 +162,17 @@ class DataRepository {
           productName: productName,
           pdfBytes: pdfBytes,
         );
-        print('✅ Email enviado a ${venta.clienteEmail}');
+
+        if (success) {
+          print('[Factura] Email enviado a ${venta.clienteEmail}');
+        } else {
+          print('[Factura] Email no pudo ser enviado (sin credenciales configuradas)');
+        }
       } catch (emailError) {
-        print('⚠️ Error al enviar email: $emailError');
+        print('[Factura] No se pudo enviar email: $emailError');
       }
     } catch (e) {
-      // No fallar la venta si el PDF o email falla
-      print('⚠️ Error generando/enviando factura (no crítico): $e');
+      print('[Factura] Error generando/enviando (no crítico): $e');
     }
   }
 

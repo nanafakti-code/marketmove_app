@@ -15,11 +15,19 @@ class EmailService {
   EmailService._internal();
 
   late final SmtpServer _smtpServer;
-  late final String _fromEmail;
+  String _fromEmail = 'noreply@marketmove.app';
+  bool _isInitialized = false;
 
   /// Inicializar el servicio de emails (llamar en main.dart)
   Future<void> initialize() async {
-    await dotenv.load();
+    try {
+      // Intentar cargar .env solo si no est√° cargado
+      if (dotenv.env.isEmpty) {
+        await dotenv.load(fileName: ".env");
+      }
+    } catch (e) {
+      print('[EmailService] No se pudo cargar .env, usando variables de entorno');
+    }
 
     final smtpUser = dotenv.env['BREVO_SMTP_USER'] ?? '';
     final smtpPassword = dotenv.env['BREVO_SMTP_PASSWORD'] ?? '';
@@ -27,7 +35,7 @@ class EmailService {
         dotenv.env['BREVO_SMTP_SERVER'] ?? 'smtp-relay.brevo.com';
     final smtpPort = int.parse(dotenv.env['BREVO_SMTP_PORT'] ?? '587');
 
-    _fromEmail = dotenv.env['BREVO_SENDER_EMAIL'] ?? 'marketmove@example.com';
+    _fromEmail = dotenv.env['BREVO_SENDER_EMAIL'] ?? 'noreply@marketmove.app';
 
     _smtpServer = SmtpServer(
       smtpServer,
@@ -38,7 +46,8 @@ class EmailService {
       allowInsecure: true,
     );
 
-    print('‚úÖ EmailService inicializado correctamente');
+    _isInitialized = true;
+    print('[EmailService] Inicializado: $_fromEmail en $smtpServer:$smtpPort');
   }
 
   /// Enviar email gen√©rico
@@ -50,10 +59,19 @@ class EmailService {
     List<Attachment>? attachments,
   }) async {
     try {
-      print('üìß Intentando enviar correo...');
-      print('  De: $_fromEmail');
-      print('  Para: $toEmail');
-      print('  Asunto: $subject');
+      // Si no est√° inicializado, saltarlo
+      if (!_isInitialized) {
+        print('[Email] No inicializado, saltando env√≠o');
+        return false;
+      }
+
+      // Verificar que las credenciales est√°n configuradas
+      if (_fromEmail == 'noreply@marketmove.app' || _fromEmail.isEmpty) {
+        print('[Email] Credenciales no configuradas, saltando env√≠o');
+        return false;
+      }
+
+      print('[Email] Enviando a: $toEmail');
 
       final message = Message()
         ..from = Address(_fromEmail, 'MarketMove')
@@ -64,20 +82,17 @@ class EmailService {
       // Agregar adjuntos si existen
       if (attachments != null && attachments.isNotEmpty) {
         message.attachments.addAll(attachments);
-        print('  Adjuntos: ${attachments.length}');
       }
 
-      final sendReport = await send(message, _smtpServer);
+      await send(message, _smtpServer);
 
-      print('‚úÖ Correo enviado exitosamente');
-      print('Message ID: ${sendReport.toString()}');
+      print('[Email] Enviado a $toEmail');
       return true;
     } on MailerException catch (e) {
-      print('‚ùå Error Mailer: ${e.toString()}');
-      print('   Problemas: ${e.problems}');
+      print('[Email] Error: ${e.toString()}');
       return false;
     } catch (e) {
-      print('‚ùå Error al enviar correo: $e');
+      print('[Email] Error inesperado: $e');
       return false;
     }
   }
@@ -207,17 +222,17 @@ class EmailService {
               <tbody>
                 <tr>
                   <td>Subtotal</td>
-                  <td style="text-align: right;">Ä${subtotal.toStringAsFixed(2)}</td>
+                  <td style="text-align: right;">ÔøΩ${subtotal.toStringAsFixed(2)}</td>
                 </tr>
-                ${tax > 0 ? '<tr><td>Impuesto (+)</td><td style="text-align: right;">Ä${tax.toStringAsFixed(2)}</td></tr>' : ''}
-                ${discount > 0 ? '<tr><td>Descuento (-)</td><td style="text-align: right;">-Ä${discount.toStringAsFixed(2)}</td></tr>' : ''}
+                ${tax > 0 ? '<tr><td>Impuesto (+)</td><td style="text-align: right;">ÔøΩ${tax.toStringAsFixed(2)}</td></tr>' : ''}
+                ${discount > 0 ? '<tr><td>Descuento (-)</td><td style="text-align: right;">-ÔøΩ${discount.toStringAsFixed(2)}</td></tr>' : ''}
               </tbody>
             </table>
 
             <div class="total-section">
               <div class="total-row final">
                 <span>Total Pagado:</span>
-                <span>Ä${total.toStringAsFixed(2)}</span>
+                <span>ÔøΩ${total.toStringAsFixed(2)}</span>
               </div>
             </div>
 
@@ -322,17 +337,17 @@ class EmailService {
               <tbody>
                 <tr>
                   <td>Subtotal</td>
-                  <td style="text-align: right;">Ä${subtotal.toStringAsFixed(2)}</td>
+                  <td style="text-align: right;">ÔøΩ${subtotal.toStringAsFixed(2)}</td>
                 </tr>
-                ${tax > 0 ? '<tr><td>Impuesto (+)</td><td style="text-align: right;">Ä${tax.toStringAsFixed(2)}</td></tr>' : ''}
-                ${discount > 0 ? '<tr><td>Descuento (-)</td><td style="text-align: right;">-Ä${discount.toStringAsFixed(2)}</td></tr>' : ''}
+                ${tax > 0 ? '<tr><td>Impuesto (+)</td><td style="text-align: right;">ÔøΩ${tax.toStringAsFixed(2)}</td></tr>' : ''}
+                ${discount > 0 ? '<tr><td>Descuento (-)</td><td style="text-align: right;">-ÔøΩ${discount.toStringAsFixed(2)}</td></tr>' : ''}
               </tbody>
             </table>
 
             <div class="total-section">
               <div class="total-row final">
                 <span>Total Ganancia:</span>
-                <span>Ä${total.toStringAsFixed(2)}</span>
+                <span>ÔøΩ${total.toStringAsFixed(2)}</span>
               </div>
             </div>
 
@@ -356,7 +371,7 @@ class EmailService {
       toEmail: adminEmail,
       toName: adminName,
       subject:
-          'üí∞ Nueva Venta Registrada #$saleNumber - Ä${total.toStringAsFixed(2)}',
+          'üí∞ Nueva Venta Registrada #$saleNumber - ÔøΩ${total.toStringAsFixed(2)}',
       htmlContent: html,
     );
   }

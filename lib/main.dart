@@ -13,6 +13,7 @@ import 'src/features/perfil/pages/perfil_page.dart';
 import 'src/features/clientes/pages/clientes_superadmin_page.dart';
 import 'src/features/clientes/pages/clientes_admin_page.dart';
 import 'src/shared/providers/auth_provider.dart';
+import 'src/shared/services/email_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,6 +50,15 @@ Future<void> main() async {
     print('[Supabase] Inicializado correctamente en: $supabaseUrl');
   } catch (e) {
     print('[Supabase] Error durante inicialización: $e');
+  }
+
+  // Inicializar EmailService para envío de facturas
+  try {
+    final emailService = EmailService();
+    await emailService.initialize();
+    print('[EmailService] Inicializado en main');
+  } catch (e) {
+    print('[EmailService] No pudo inicializarse: $e');
   }
 
   runApp(const MyApp());
