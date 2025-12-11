@@ -20,7 +20,7 @@ Future<void> main() async {
 
   String supabaseUrl = 'https://zzaobtowduhjeivrmjhn.supabase.co';
   String supabaseAnonKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp6YW9idG93ZHVoamVpdnJtamhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MjcxODMsImV4cCI6MjA4MDEwMzE4M30.f9dSOGXfuWS0VbV1LZGtEqQggGoKzFtRkQnKdbwv2nk';
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp6YW9idG93ZHVoamVpdnJtamhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk2Nzk3NzIsImV4cCI6MTk5OTk5OTk5OX0.7sYpBq3G55PqDNNWLjpNHJQ-yNJBvDnzxvK8X7Fgkzc';
 
   // Intentar cargar variables de entorno desde .env
   // Si falla, usar las credenciales hardcodeadas arriba
