@@ -67,7 +67,7 @@ flutter:
 
   # Load environment variables
   assets:
-    - .env
+    - assets/.env
     - assets/icons/
     - assets/images/
 

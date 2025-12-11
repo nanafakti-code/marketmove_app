@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import 'package:path_provider/path_provider.dart';
@@ -19,48 +20,29 @@ class EmailService {
   /// Inicializar el servicio de emails (llamar en main.dart)
   Future<void> initialize() async {
     try {
-      // Leer archivo .env manualmente de forma segura
-      try {
-        final envFile = File('.env');
-        if (await envFile.exists()) {
-          final lines = await envFile.readAsLines();
-          final envMap = <String, String>{};
-          for (final line in lines) {
-            if (line.isNotEmpty && !line.startsWith('#')) {
-              final parts = line.split('=');
-              if (parts.length == 2) {
-                envMap[parts[0].trim()] = parts[1].trim();
-              }
-            }
-          }
+      // Obtener credenciales desde dotenv (ya cargado en main.dart)
+      final smtpUser = dotenv.env['BREVO_SMTP_USER'] ?? '';
+      final smtpPassword = dotenv.env['BREVO_SMTP_PASSWORD'] ?? '';
+      
+      if (smtpUser.isNotEmpty && smtpPassword.isNotEmpty) {
+        final smtpServer =
+            dotenv.env['BREVO_SMTP_SERVER'] ?? 'smtp-relay.brevo.com';
+        final smtpPortStr = dotenv.env['BREVO_SMTP_PORT'] ?? '587';
+        final smtpPort = int.tryParse(smtpPortStr) ?? 587;
+        final fromEmail = dotenv.env['BREVO_SENDER_EMAIL'] ?? 'noreply@marketmove.app';
 
-          final smtpUser = envMap['BREVO_SMTP_USER'] ?? '';
-          final smtpPassword = envMap['BREVO_SMTP_PASSWORD'] ?? '';
-          
-          // Si hay credenciales, inicializar
-          if (smtpUser.isNotEmpty && smtpPassword.isNotEmpty) {
-            final smtpServer =
-                envMap['BREVO_SMTP_SERVER'] ?? 'smtp-relay.brevo.com';
-            final smtpPortStr = envMap['BREVO_SMTP_PORT'] ?? '587';
-            final smtpPort = int.tryParse(smtpPortStr) ?? 587;
-            final fromEmail = envMap['BREVO_SENDER_EMAIL'] ?? 'noreply@marketmove.app';
-
-            _smtpServer = SmtpServer(
-              smtpServer,
-              port: smtpPort,
-              username: smtpUser,
-              password: smtpPassword,
-              ssl: false,
-              allowInsecure: true,
-            );
-            _fromEmail = fromEmail;
-          }
-        }
-      } catch (_) {
-        // Ignorar cualquier error al leer .env
+        _smtpServer = SmtpServer(
+          smtpServer,
+          port: smtpPort,
+          username: smtpUser,
+          password: smtpPassword,
+          ssl: false,
+          allowInsecure: true,
+        );
+        _fromEmail = fromEmail;
       }
-    } catch (_) {
-      // Ignorar cualquier error durante inicialización
+    } catch (e) {
+      print('[EmailService] Error al inicializar: $e');
     }
   }
 
@@ -73,55 +55,34 @@ class EmailService {
     List<Attachment>? attachments,
   }) async {
     try {
-      // Intentar leer credenciales del .env en tiempo real
+      // Intentar obtener credenciales desde dotenv
       var smtpServer = _smtpServer;
       var fromEmail = _fromEmail;
 
       if (smtpServer == null) {
-        // Intentar inicializar de nuevo
-        try {
-          final envFile = File('.env');
-          if (await envFile.exists()) {
-            final lines = await envFile.readAsLines();
-            final envMap = <String, String>{};
-            for (final line in lines) {
-              if (line.isNotEmpty && !line.startsWith('#')) {
-                final parts = line.split('=');
-                if (parts.length == 2) {
-                  envMap[parts[0].trim()] = parts[1].trim();
-                }
-              }
-            }
-
-            final smtpUser = envMap['BREVO_SMTP_USER'] ?? '';
-            final smtpPassword = envMap['BREVO_SMTP_PASSWORD'] ?? '';
-            
-            if (smtpUser.isNotEmpty && smtpPassword.isNotEmpty) {
-              final smtpServerStr =
-                  envMap['BREVO_SMTP_SERVER'] ?? 'smtp-relay.brevo.com';
-              final smtpPortStr = envMap['BREVO_SMTP_PORT'] ?? '587';
-              final smtpPort = int.tryParse(smtpPortStr) ?? 587;
-              
-              smtpServer = SmtpServer(
-                smtpServerStr,
-                port: smtpPort,
-                username: smtpUser,
-                password: smtpPassword,
-                ssl: false,
-                allowInsecure: true,
-              );
-              fromEmail = envMap['BREVO_SENDER_EMAIL'] ?? 'noreply@marketmove.app';
-            }
-          }
-        } catch (e) {
-          print('[EmailService] Error al leer .env: $e');
+        // Intentar obtener desde dotenv si no está inicializado
+        final smtpUser = dotenv.env['BREVO_SMTP_USER'] ?? '';
+        final smtpPassword = dotenv.env['BREVO_SMTP_PASSWORD'] ?? '';
+        
+        if (smtpUser.isEmpty || smtpPassword.isEmpty) {
+          print('[EmailService] No se encontraron credenciales de Brevo');
           return false;
         }
-      }
-
-      if (smtpServer == null) {
-        print('[EmailService] SMTP Server no inicializado');
-        return false;
+        
+        final smtpServerStr =
+            dotenv.env['BREVO_SMTP_SERVER'] ?? 'smtp-relay.brevo.com';
+        final smtpPortStr = dotenv.env['BREVO_SMTP_PORT'] ?? '587';
+        final smtpPort = int.tryParse(smtpPortStr) ?? 587;
+        
+        smtpServer = SmtpServer(
+          smtpServerStr,
+          port: smtpPort,
+          username: smtpUser,
+          password: smtpPassword,
+          ssl: false,
+          allowInsecure: true,
+        );
+        fromEmail = dotenv.env['BREVO_SENDER_EMAIL'] ?? 'noreply@marketmove.app';
       }
 
       final message = Message()

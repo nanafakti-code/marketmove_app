@@ -25,7 +25,7 @@ Future<void> main() async {
   // Intentar cargar variables de entorno desde .env
   // Si falla, usar las credenciales hardcodeadas arriba
   try {
-    await dotenv.load(fileName: ".env");
+    await dotenv.load(fileName: "assets/.env");
     final loadedUrl = dotenv.env['SUPABASE_URL'];
     final loadedKey = dotenv.env['SUPABASE_ANON_KEY'];
 
