@@ -64,7 +64,7 @@
 - **Tema consistente**: Colores, tipografía y componentes unificados
 
 ### 📧 Integración de Emails
-- Envío automático de facturas por SMTP (Brevo)
+- Envío automático de facturas por Gmail (usando mailer)
 - Notificaciones por email
 - Plantillas de email personalizables
 
@@ -99,7 +99,7 @@ marketmove_app/
 │   │   │
 │   │   └── shared/
 │   │       ├── services/                  # Servicios compartidos
-│   │       │   ├── email_service.dart     # Servicio de emails (Brevo SMTP)
+│   │       │   ├── email_service.dart     # Servicio de emails (Gmail SMTP con mailer)
 │   │       │   └── pdf_service.dart       # Generación de PDFs
 │   │       ├── repositories/              # Acceso a datos (Supabase)
 │   │       │   └── data_repository.dart   # Operaciones CRUD
@@ -148,13 +148,13 @@ marketmove_app/
   - **RLS (Row Level Security)** - Control de acceso a nivel de fila
 
 ### Servicios Externos
-- **Brevo (Sendinblue)** - Envío de emails SMTP
+- **Gmail SMTP** - Envío de emails mediante mailer
 - **Google Fonts** - Tipografía web
 
 ### Librerías Principales
 - **supabase_flutter 2.9.0** - Cliente oficial de Supabase
 - **flutter_dotenv 5.2.1** - Variables de entorno
-- **mailer 6.6.0** - Envío de emails
+- **mailer 6.6.0** - Envío de emails con Gmail
 - **pdf 3.11.1** - Generación de PDFs
 - **path_provider** - Acceso a rutas del sistema
 - **shared_preferences** - Almacenamiento local
@@ -217,10 +217,10 @@ cp .env.example .env
 SUPABASE_URL=tu_url_supabase
 SUPABASE_ANON_KEY=tu_anon_key
 
-# Brevo (para envío de emails)
-BREVO_SMTP_USER=tu_usuario_smtp@smtp-brevo.com
-BREVO_SMTP_PASSWORD=tu_clave_smtp
-BREVO_SENDER_EMAIL=tu_email@ejemplo.com
+# Gmail (para envío de emails)
+BREVO_SMTP_USER=tu_email@gmail.com
+BREVO_SMTP_PASSWORD=tu_contraseña_aplicacion_gmail
+BREVO_SENDER_EMAIL=tu_email@gmail.com
 ```
 
 ### 4. Ejecutar la Aplicación
@@ -296,13 +296,16 @@ Para más detalles, consulta [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md)
 
 ---
 
-## 🔑 Configuración de Emails (Brevo)
+## 🔑 Configuración de Emails (Gmail)
 
-1. **Crear cuenta en Brevo**: https://app.brevo.com
-2. **Obtener credenciales SMTP**: Panel → Configuración → SMTP
-3. **Configurar en `.env`**: Llenar variables de BREVO_*
+1. **Usar cuenta Gmail**: https://mail.google.com
+2. **Generar contraseña de aplicación**: 
+   - Ir a https://myaccount.google.com/security
+   - Habilitar autenticación de dos factores
+   - Generar contraseña de aplicación para "Mail"
+3. **Configurar en `.env`**: Usar las variables BREVO_* con credenciales de Gmail
 
-Para más detalles, consulta [docs/BREVO_SETUP.md](docs/BREVO_SETUP.md)
+**Nota**: Aunque usamos variables nombradas BREVO_*, actualmente estamos usando Gmail SMTP con la librería `mailer`.
 
 ---
 
