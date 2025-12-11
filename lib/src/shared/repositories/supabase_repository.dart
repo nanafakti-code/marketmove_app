@@ -47,7 +47,7 @@ class ProductoRepository implements Repository<Producto> {
         .eq('id', id)
         .single();
       
-      return Producto.fromJson(response as Map<String, dynamic>);
+      return Producto.fromJson(response);
     } catch (e) {
       return null;
     }
@@ -85,7 +85,7 @@ class ProductoRepository implements Repository<Producto> {
       .insert(item.toJson())
       .select();
     
-    return (response[0] as Map<String, dynamic>)['id'] as String;
+    return response[0]['id'] as String;
   }
 
   @override
@@ -142,7 +142,7 @@ class VentaRepository implements Repository<Venta> {
         .eq('id', id)
         .single();
       
-      return Venta.fromJson(response as Map<String, dynamic>);
+      return Venta.fromJson(response);
     } catch (e) {
       return null;
     }
@@ -201,7 +201,7 @@ class VentaRepository implements Repository<Venta> {
       .insert(item.toJson())
       .select();
     
-    return (response[0] as Map<String, dynamic>)['id'] as String;
+    return response[0]['id'] as String;
   }
 
   @override
@@ -258,7 +258,7 @@ class GastoRepository implements Repository<Gasto> {
         .eq('id', id)
         .single();
       
-      return Gasto.fromJson(response as Map<String, dynamic>);
+      return Gasto.fromJson(response);
     } catch (e) {
       return null;
     }
@@ -317,7 +317,7 @@ class GastoRepository implements Repository<Gasto> {
       .insert(item.toJson())
       .select();
     
-    return (response[0] as Map<String, dynamic>)['id'] as String;
+    return response[0]['id'] as String;
   }
 
   @override
@@ -357,7 +357,7 @@ class UsuarioRepository {
         .eq('id', user.id)
         .single();
       
-      return Usuario.fromJson(response as Map<String, dynamic>);
+      return Usuario.fromJson(response);
     } catch (e) {
       return null;
     }
@@ -397,7 +397,7 @@ class ResumenRepository {
         .eq('mes_anio', fecha)
         .single();
       
-      return Resumen.fromJson(response as Map<String, dynamic>);
+      return Resumen.fromJson(response);
     } catch (e) {
       return null;
     }

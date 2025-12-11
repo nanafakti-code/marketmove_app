@@ -103,20 +103,23 @@ class _AnimatedGradientButtonState extends State<AnimatedGradientButton>
                   ),
                 )
               : Row(
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (widget.icon != null) ...[
                       Icon(widget.icon, color: Colors.white, size: 20),
                       const SizedBox(width: 8),
                     ],
-                    Text(
-                      widget.text,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
+                    Flexible(
+                      child: Text(
+                        widget.text,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   ],

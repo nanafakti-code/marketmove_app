@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/animated_button.dart';
 import '../../../shared/providers/auth_provider.dart';
-import '../../../core/utils/responsive_helper.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -67,11 +66,41 @@ class _LoginPageState extends State<LoginPage>
       );
 
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/resumen');
+        // Obtener el rol del usuario para redirigir correctamente
+        final role = await authProvider.getUserRole();
+        
+        if (role == 'superadmin') {
+          Navigator.pushReplacementNamed(context, '/resumen');
+        } else {
+          // Usuario con rol admin - redirigir al dashboard admin
+          Navigator.pushReplacementNamed(context, '/resumen');
+        }
       }
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        // Manejo de errores de autenticación
+        final errorString = e.toString().toLowerCase();
+        if (errorString.contains('invalid credentials') ||
+            errorString.contains('invalid login') ||
+            errorString.contains('invalid_credentials')) {
+          _errorMessage = 'Email o contraseña incorrectos';
+        } else if (errorString.contains('user not found') ||
+            errorString.contains('user_not_found')) {
+          _errorMessage = 'El usuario no existe';
+        } else if (errorString.contains('already registered')) {
+          _errorMessage = 'Este email ya está registrado';
+        } else if (errorString.contains('rate limit') ||
+            errorString.contains('too many')) {
+          _errorMessage = 'Demasiados intentos. Intenta más tarde';
+        } else if (errorString.contains('network') ||
+            errorString.contains('connection')) {
+          _errorMessage = 'Error de conexión. Verifica tu internet';
+        } else if (errorString.contains('unauthorized')) {
+          _errorMessage = 'Credenciales inválidas';
+        } else {
+          // Mostrar un mensaje genérico en lugar del error técnico
+          _errorMessage = 'Error al iniciar sesión. Intenta de nuevo';
+        }
       });
     } finally {
       setState(() {
@@ -177,7 +206,6 @@ class _LoginPageState extends State<LoginPage>
                               color: AppColors.almostBlack,
                             ),
                             decoration: InputDecoration(
-                              labelText: 'Email',
                               hintText: 'tu@email.com',
                               prefixIcon: Container(
                                 margin: const EdgeInsets.all(12),
@@ -215,7 +243,6 @@ class _LoginPageState extends State<LoginPage>
                               color: AppColors.almostBlack,
                             ),
                             decoration: InputDecoration(
-                              labelText: 'Contraseña',
                               hintText: '••••••••',
                               prefixIcon: Container(
                                 margin: const EdgeInsets.all(12),
@@ -247,6 +274,11 @@ class _LoginPageState extends State<LoginPage>
                               fillColor: Colors.white.withOpacity(0.9),
                             ),
                             obscureText: _obscurePassword,
+                            onFieldSubmitted: (_) {
+                              if (!_isLoading) {
+                                _handleLogin();
+                              }
+                            },
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Por favor ingrese su contraseña';

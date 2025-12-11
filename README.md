@@ -10,7 +10,7 @@
 
 **Aplicación móvil profesional para gestión integral de pequeños comercios**
 
-[📋 Características](#-características) • [🚀 Quick Start](#-quick-start) • [📁 Estructura](#-estructura) • [🔐 Seguridad](#-seguridad) • [📚 Documentación](#-documentación)
+[📋 Características](#-características) • [🚀 Quick Start](#-quick-start) • [📁 Estructura](#-estructura) • [🔐 Seguridad](#-seguridad) • [📚 Documentación](#-documentación) • [📖 Docs](docs/INDEX.md)
 
 </div>
 
@@ -58,6 +58,20 @@
 - **Firebase** - Analytics y Crash reporting
 - **Google Play Store** - Distribución Android
 - **Apple App Store** - Distribución iOS
+
+## 📚 Documentación
+
+La documentación completa del proyecto se encuentra en la carpeta `docs/`:
+
+- **[📖 Índice Completo de Documentación](docs/INDEX.md)** - Listado de todos los documentos disponibles
+- **[⚡ Quick Start](docs/QUICK_SETUP.md)** - Configuración rápida del proyecto
+- **[🏗️ Arquitectura](docs/ARQUITECTURA_DIAGRAMA.md)** - Diagrama y descripción de la arquitectura
+- **[🔧 Configuración de Supabase](docs/SUPABASE_CONFIG.md)** - Guía de configuración
+- **[📧 Setup de Brevo](docs/BREVO_SETUP.md)** - Configuración de envío de emails
+- **[👥 Gestión de Clientes](docs/CLIENTES_SETUP.md)** - Documentación del módulo de clientes
+- **[💾 Base de Datos](docs/DIAGRAMA_ER.md)** - Diagrama entidad-relación
+
+> 💡 **Tip**: Todos los documentos `.md` están organizados en la carpeta `docs/` para mantener la raíz limpia y ordenada.
 
 ## 📁 Estructura del Proyecto
 

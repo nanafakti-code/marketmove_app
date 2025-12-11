@@ -1,5 +1,5 @@
 name: marketmove_app
-description: "A new Flutter project."
+description: "Aplicación móvil profesional para gestión integral de pequeños comercios. Registra ventas, controla gastos y gestiona inventario en tiempo real."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -40,6 +40,8 @@ dependencies:
   provider: ^6.1.5+1
   http: ^1.1.0
   mailer: ^6.6.0
+  pdf: ^3.11.1
+  path_provider: ^2.1.4
 
 dev_dependencies:
   flutter_test:

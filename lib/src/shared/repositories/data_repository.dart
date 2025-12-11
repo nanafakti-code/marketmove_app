@@ -2,6 +2,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/models/producto_model.dart';
 import '../../core/models/venta_model.dart';
 import '../../core/models/gasto_model.dart';
+import '../services/pdf_service.dart';
+import '../services/email_service.dart';
 
 class DataRepository {
   final SupabaseClient supabase;
@@ -16,7 +18,7 @@ class DataRepository {
           .insert(producto.toMap())
           .select()
           .single();
-      
+
       print('✅ Producto creado: ${response['id']}');
       return Producto.fromMap(response);
     } catch (e) {
@@ -33,6 +35,26 @@ class DataRepository {
         .map((data) => (data as List).map((p) => Producto.fromMap(p)).toList());
   }
 
+  Future<Producto> actualizarProducto(
+    String productoId,
+    Producto producto,
+  ) async {
+    try {
+      final response = await supabase
+          .from('productos')
+          .update(producto.toMap())
+          .eq('id', productoId)
+          .select()
+          .single();
+
+      print('✅ Producto actualizado: $productoId');
+      return Producto.fromMap(response);
+    } catch (e) {
+      print('❌ Error actualizando producto: $e');
+      rethrow;
+    }
+  }
+
   Future<void> eliminarProducto(String productoId) async {
     try {
       await supabase.from('productos').delete().eq('id', productoId);
@@ -46,17 +68,108 @@ class DataRepository {
   // ==================== VENTAS ====================
   Future<Venta> crearVenta(Venta venta) async {
     try {
+      String? productName;
+
+      // Primero, verificar y actualizar el stock del producto
+      if (venta.productoId != null) {
+        // Obtener el producto actual
+        final productoResponse = await supabase
+            .from('productos')
+            .select('cantidad, nombre')
+            .eq('id', venta.productoId!)
+            .single();
+
+        final stockActual = productoResponse['cantidad'] as int;
+        productName = productoResponse['nombre'] as String;
+
+        // Verificar que hay stock disponible
+        if (stockActual <= 0) {
+          throw Exception('No hay stock disponible para este producto');
+        }
+
+        // Restar 1 del stock
+        await supabase
+            .from('productos')
+            .update({'cantidad': stockActual - 1})
+            .eq('id', venta.productoId!);
+
+        print('✅ Stock actualizado: ${stockActual - 1}');
+      }
+
+      // Crear la venta
       final response = await supabase
           .from('ventas')
           .insert(venta.toMap())
           .select()
           .single();
-      
+
       print('✅ Venta creada: ${response['id']}');
-      return Venta.fromMap(response);
+      final ventaCreada = Venta.fromMap(response);
+
+      // Generar PDF y enviar email de factura al cliente (fire and forget)
+      if (venta.clienteEmail.isNotEmpty && productName != null) {
+        _generarYEnviarFactura(
+          venta: venta,
+          ventaCreada: ventaCreada,
+          productName: productName,
+        );
+      }
+
+      return ventaCreada;
     } catch (e) {
       print('❌ Error creando venta: $e');
       rethrow;
+    }
+  }
+
+  // Método privado para generar PDF y enviar email de factura (fire and forget)
+  Future<void> _generarYEnviarFactura({
+    required Venta venta,
+    required Venta ventaCreada,
+    required String productName,
+  }) async {
+    try {
+      // 1. Generar PDF
+      final pdfService = PdfService();
+      final pdfBytes = await pdfService.generateInvoicePDF(
+        saleNumber: ventaCreada.numeroVenta,
+        clientName: venta.clienteNombre,
+        clientEmail: venta.clienteEmail,
+        productName: productName,
+        total: venta.total,
+        tax: venta.impuesto,
+        discount: venta.descuento,
+        paymentMethod: venta.metodoPago,
+        saleDate: venta.fecha ?? DateTime.now(),
+        notes: venta.notas,
+      );
+      print('✅ PDF generado para factura #${ventaCreada.numeroVenta}');
+
+      // 2. Enviar email con el PDF
+      try {
+        final emailService = EmailService();
+        // Inicializar el servicio antes de enviar
+        await emailService.initialize();
+        await emailService.sendInvoiceEmail(
+          clientEmail: venta.clienteEmail,
+          clientName: venta.clienteNombre,
+          saleNumber: ventaCreada.numeroVenta,
+          total: venta.total,
+          tax: venta.impuesto,
+          discount: venta.descuento,
+          paymentMethod: venta.metodoPago,
+          saleDate: venta.fecha ?? DateTime.now(),
+          notes: venta.notas,
+          productName: productName,
+          pdfBytes: pdfBytes,
+        );
+        print('✅ Email enviado a ${venta.clienteEmail}');
+      } catch (emailError) {
+        print('⚠️ Error al enviar email: $emailError');
+      }
+    } catch (e) {
+      // No fallar la venta si el PDF o email falla
+      print('⚠️ Error generando/enviando factura (no crítico): $e');
     }
   }
 
@@ -66,6 +179,23 @@ class DataRepository {
         .stream(primaryKey: ['id'])
         .eq('user_id', userId)
         .map((data) => (data as List).map((v) => Venta.fromMap(v)).toList());
+  }
+
+  Future<Venta> actualizarVenta(String ventaId, Venta venta) async {
+    try {
+      final response = await supabase
+          .from('ventas')
+          .update(venta.toMap())
+          .eq('id', ventaId)
+          .select()
+          .single();
+
+      print('✅ Venta actualizada: $ventaId');
+      return Venta.fromMap(response);
+    } catch (e) {
+      print('❌ Error actualizando venta: $e');
+      rethrow;
+    }
   }
 
   Future<void> eliminarVenta(String ventaId) async {
@@ -86,7 +216,7 @@ class DataRepository {
           .insert(gasto.toMap())
           .select()
           .single();
-      
+
       print('✅ Gasto creado: ${response['id']}');
       return Gasto.fromMap(response);
     } catch (e) {
@@ -109,6 +239,177 @@ class DataRepository {
       print('✅ Gasto eliminado: $gastoId');
     } catch (e) {
       print('❌ Error eliminando gasto: $e');
+      rethrow;
+    }
+  }
+
+  Future<Gasto> actualizarGasto(Gasto gasto) async {
+    try {
+      if (gasto.id == null) {
+        throw Exception('El ID del gasto es requerido para actualizar');
+      }
+
+      final response = await supabase
+          .from('gastos')
+          .update(gasto.toMap())
+          .eq('id', gasto.id!)
+          .select()
+          .single();
+
+      print('✅ Gasto actualizado: ${response['id']}');
+      return Gasto.fromMap(response);
+    } catch (e) {
+      print('❌ Error actualizando gasto: $e');
+      rethrow;
+    }
+  }
+
+  // ==================== CLIENTES (ADMIN USERS) ====================
+  Stream<List<Map<String, dynamic>>> obtenerClientesAdmin() {
+    return supabase
+        .from('users')
+        .stream(primaryKey: ['id'])
+        .eq('role', 'admin')
+        .map((data) {
+          print('📊 Datos recibidos de users: ${data.length} registros');
+          final adminUsers = (data as List).cast<Map<String, dynamic>>().where((
+            user,
+          ) {
+            final role = user['role'] as String?;
+            print('👤 Usuario: ${user['email']}, role: $role');
+            return role == 'admin';
+          }).toList();
+          print('✅ Clientes admin filtrados: ${adminUsers.length}');
+          return adminUsers;
+        });
+  }
+
+  // Obtener un usuario por ID (para superadmin)
+  Future<Map<String, dynamic>?> obtenerUsuarioPorId(String userId) async {
+    try {
+      final response = await supabase
+          .from('users')
+          .select()
+          .eq('id', userId)
+          .single();
+      return response;
+    } catch (e) {
+      print('❌ Error obteniendo usuario: $e');
+      return null;
+    }
+  }
+
+  // Actualizar usuario (solo superadmin puede cambiar role de otros)
+  Future<void> actualizarUsuario(
+    String userId,
+    Map<String, dynamic> datos,
+  ) async {
+    try {
+      await supabase.from('users').update(datos).eq('id', userId);
+      print('✅ Usuario actualizado: $userId');
+    } catch (e) {
+      print('❌ Error actualizando usuario: $e');
+      rethrow;
+    }
+  }
+
+  // Eliminar usuario (solo superadmin)
+  Future<void> eliminarUsuario(String userId) async {
+    try {
+      await supabase.from('users').delete().eq('id', userId);
+      print('✅ Usuario eliminado: $userId');
+    } catch (e) {
+      print('❌ Error eliminando usuario: $e');
+      rethrow;
+    }
+  }
+
+  // ==================== CLIENTES ====================
+  Stream<List<Map<String, dynamic>>> obtenerClientes(String userId) {
+    // Obtener clientes de la tabla clientes_empresa (disponibles para seleccionar)
+    return supabase.from('clientes_empresa').stream(primaryKey: ['id']).map((
+      data,
+    ) {
+      // Devolver todos los clientes disponibles (sin filtrar por user_id porque clientes_empresa no tiene ese campo)
+      final clientes = (data as List).cast<Map<String, dynamic>>();
+      print('✅ Clientes cargados: ${clientes.length}');
+      return clientes;
+    });
+  }
+
+  Future<String> crearCliente({
+    required String userId,
+    required String nombre,
+    String? email,
+    String? telefono,
+    String? empresa,
+    String? direccion,
+  }) async {
+    try {
+      final response = await supabase.from('clientes_empresa').insert({
+        'nombre_cliente': nombre,
+        'email': email,
+        'telefono': telefono,
+        'razon_social': empresa,
+        'direccion': direccion,
+      }).select();
+
+      return response[0]['id'] as String;
+    } catch (e) {
+      print('❌ Error creando cliente: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> actualizarCliente({
+    required String clienteId,
+    required String nombre,
+    String? email,
+    String? telefono,
+    String? empresa,
+    String? direccion,
+  }) async {
+    try {
+      await supabase
+          .from('clientes_empresa')
+          .update({
+            'nombre_cliente': nombre,
+            'email': email,
+            'telefono': telefono,
+            'razon_social': empresa,
+            'direccion': direccion,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', clienteId);
+    } catch (e) {
+      print('❌ Error actualizando cliente: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> eliminarCliente(String clienteId) async {
+    try {
+      // Primero obtener el nombre del cliente para buscar sus ventas
+      final clienteData = await supabase
+          .from('clientes_empresa')
+          .select('nombre_cliente')
+          .eq('id', clienteId)
+          .single();
+
+      final nombreCliente = clienteData['nombre_cliente'];
+
+      // Eliminar todas las ventas asociadas a este cliente
+      await supabase
+          .from('ventas')
+          .delete()
+          .eq('cliente_nombre', nombreCliente);
+
+      // Eliminar el cliente
+      await supabase.from('clientes_empresa').delete().eq('id', clienteId);
+
+      print('✅ Cliente y sus ventas eliminados correctamente');
+    } catch (e) {
+      print('❌ Error eliminando cliente: $e');
       rethrow;
     }
   }

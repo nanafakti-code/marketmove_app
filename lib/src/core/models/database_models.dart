@@ -452,3 +452,71 @@ class AuditLog {
     'created_at': createdAt.toIso8601String(),
   };
 }
+
+// ============================================
+// CLIENTE (from clientes_empresa table)
+// ============================================
+class Cliente {
+  final String id;
+  final String nombre;
+  final String? email;
+  final String? telefono;
+  final String? empresa;
+  final String? direccion;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  Cliente({
+    required this.id,
+    required this.nombre,
+    this.email,
+    this.telefono,
+    this.empresa,
+    this.direccion,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  factory Cliente.fromJson(Map<String, dynamic> json) => Cliente(
+    id: json['id'] as String,
+    nombre: json['nombre_cliente'] as String? ?? json['nombre'] as String? ?? '',
+    email: json['email'] as String?,
+    telefono: json['telefono'] as String?,
+    empresa: json['razon_social'] as String? ?? json['empresa'] as String?,
+    direccion: json['direccion'] as String?,
+    createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
+    updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at'] as String) : null,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'nombre_cliente': nombre,
+    'email': email,
+    'telefono': telefono,
+    'razon_social': empresa,
+    'direccion': direccion,
+    'created_at': createdAt?.toIso8601String(),
+    'updated_at': updatedAt?.toIso8601String(),
+  };
+
+  Cliente copyWith({
+    String? id,
+    String? nombre,
+    String? email,
+    String? telefono,
+    String? empresa,
+    String? direccion,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => Cliente(
+    id: id ?? this.id,
+    nombre: nombre ?? this.nombre,
+    email: email ?? this.email,
+    telefono: telefono ?? this.telefono,
+    empresa: empresa ?? this.empresa,
+    direccion: direccion ?? this.direccion,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+}
+

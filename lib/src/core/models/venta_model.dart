@@ -2,6 +2,7 @@ class Venta {
   final String? id;
   final String userId;
   final String numeroVenta;
+  final String? productoId; // Producto vendido
   final String clienteNombre;
   final String clienteEmail;
   final String clienteTelefono;
@@ -19,6 +20,7 @@ class Venta {
     this.id,
     required this.userId,
     required this.numeroVenta,
+    this.productoId,
     required this.clienteNombre,
     required this.clienteEmail,
     required this.clienteTelefono,
@@ -36,7 +38,7 @@ class Venta {
   Map<String, dynamic> toMap() {
     return {
       'user_id': userId,
-      'numero_venta': numeroVenta,
+      'producto_id': productoId,
       'cliente_nombre': clienteNombre,
       'cliente_email': clienteEmail,
       'cliente_telefono': clienteTelefono,
@@ -54,7 +56,8 @@ class Venta {
     return Venta(
       id: map['id'],
       userId: map['user_id'],
-      numeroVenta: map['numero_venta'],
+      numeroVenta: map['id'] ?? '', // Usar el ID generado como número de venta
+      productoId: map['producto_id'],
       clienteNombre: map['cliente_nombre'],
       clienteEmail: map['cliente_email'],
       clienteTelefono: map['cliente_telefono'],

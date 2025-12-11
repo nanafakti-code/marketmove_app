@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/animated_button.dart';
 import '../../../shared/providers/auth_provider.dart';
-import '../../../core/utils/responsive_helper.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -20,6 +20,14 @@ class _RegisterPageState extends State<RegisterPage>
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _nifController = TextEditingController();
+  final _sectorController = TextEditingController();
+  final _telefonoController = TextEditingController();
+  final _emailEmpresaController = TextEditingController();
+  final _direccionController = TextEditingController();
+  final _ciudadController = TextEditingController();
+  final _provinciaController = TextEditingController();
+  final _codigoPostalController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
@@ -53,6 +61,14 @@ class _RegisterPageState extends State<RegisterPage>
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _nifController.dispose();
+    _sectorController.dispose();
+    _telefonoController.dispose();
+    _emailEmpresaController.dispose();
+    _direccionController.dispose();
+    _ciudadController.dispose();
+    _provinciaController.dispose();
+    _codigoPostalController.dispose();
     super.dispose();
   }
 
@@ -75,10 +91,37 @@ class _RegisterPageState extends State<RegisterPage>
         businessName: _businessNameController.text.trim(),
       );
 
+      // Obtener el usuario actualmente autenticado
+      final currentUser = Supabase.instance.client.auth.currentUser;
+
+      if (currentUser != null) {
+        // Insertar datos de empresa en Supabase
+        try {
+          await Supabase.instance.client.from('empresas').insert({
+            'admin_id': currentUser.id,
+            'nombre_negocio': _businessNameController.text.trim(),
+            'nif': _nifController.text.trim(),
+            'sector': _sectorController.text.trim(),
+            'telefono': _telefonoController.text.trim(),
+            'email_empresa': _emailEmpresaController.text.trim(),
+            'direccion': _direccionController.text.trim(),
+            'ciudad': _ciudadController.text.trim(),
+            'provincia': _provinciaController.text.trim(),
+            'codigo_postal': _codigoPostalController.text.trim(),
+            'estado': 'activa',
+          });
+        } catch (empresasError) {
+          debugPrint('Error al insertar en tabla empresas: $empresasError');
+          // Continuar incluso si falla la inserción de empresa
+        }
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('¡Registro exitoso! Por favor inicia sesión'),
+            content: Text(
+              '✅ Registro exitoso',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -86,7 +129,18 @@ class _RegisterPageState extends State<RegisterPage>
       }
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        // Manejo de errores de autenticación
+        if (e.toString().contains('already registered') ||
+            e.toString().contains('email')) {
+          _errorMessage = 'Este email ya está registrado';
+        } else if (e.toString().contains('Invalid credentials') ||
+            e.toString().contains('invalid')) {
+          _errorMessage = 'Credenciales inválidas';
+        } else if (e.toString().contains('rate limit')) {
+          _errorMessage = 'Demasiados intentos. Intenta más tarde';
+        } else {
+          _errorMessage = e.toString();
+        }
       });
     } finally {
       setState(() {
@@ -140,10 +194,12 @@ class _RegisterPageState extends State<RegisterPage>
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              gradient: AppColors.pinkGradient,
+                              gradient: AppColors.primaryGradient,
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.accentPink.withOpacity(0.5),
+                                  color: AppColors.primaryPurple.withOpacity(
+                                    0.5,
+                                  ),
                                   blurRadius: 30,
                                   offset: const Offset(0, 10),
                                 ),
@@ -186,20 +242,10 @@ class _RegisterPageState extends State<RegisterPage>
                               color: AppColors.almostBlack,
                             ),
                             decoration: InputDecoration(
-                              labelText: 'Nombre completo',
                               hintText: 'Juan Pérez',
-                              prefixIcon: Container(
-                                margin: const EdgeInsets.all(12),
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  gradient: AppColors.pinkGradient,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.person_rounded,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
+                              prefixIcon: const Icon(
+                                Icons.person_rounded,
+                                color: AppColors.primaryBlue,
                               ),
                               filled: true,
                               fillColor: Colors.white.withOpacity(0.9),
@@ -220,20 +266,10 @@ class _RegisterPageState extends State<RegisterPage>
                               color: AppColors.almostBlack,
                             ),
                             decoration: InputDecoration(
-                              labelText: 'Nombre del negocio',
                               hintText: 'Mi Negocio',
-                              prefixIcon: Container(
-                                margin: const EdgeInsets.all(12),
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  gradient: AppColors.pinkGradient,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.business_rounded,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
+                              prefixIcon: const Icon(
+                                Icons.business_rounded,
+                                color: AppColors.primaryBlue,
                               ),
                               filled: true,
                               fillColor: Colors.white.withOpacity(0.9),
@@ -254,20 +290,10 @@ class _RegisterPageState extends State<RegisterPage>
                               color: AppColors.almostBlack,
                             ),
                             decoration: InputDecoration(
-                              labelText: 'Email',
                               hintText: 'tu@email.com',
-                              prefixIcon: Container(
-                                margin: const EdgeInsets.all(12),
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  gradient: AppColors.pinkGradient,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.email_rounded,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
+                              prefixIcon: const Icon(
+                                Icons.email_rounded,
+                                color: AppColors.primaryBlue,
                               ),
                               filled: true,
                               fillColor: Colors.white.withOpacity(0.9),
@@ -292,20 +318,10 @@ class _RegisterPageState extends State<RegisterPage>
                               color: AppColors.almostBlack,
                             ),
                             decoration: InputDecoration(
-                              labelText: 'Contraseña',
                               hintText: '••••••••',
-                              prefixIcon: Container(
-                                margin: const EdgeInsets.all(12),
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  gradient: AppColors.pinkGradient,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.lock_rounded,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
+                              prefixIcon: const Icon(
+                                Icons.lock_rounded,
+                                color: AppColors.primaryBlue,
                               ),
                               suffixIcon: IconButton(
                                 icon: Icon(
@@ -343,20 +359,10 @@ class _RegisterPageState extends State<RegisterPage>
                               color: AppColors.almostBlack,
                             ),
                             decoration: InputDecoration(
-                              labelText: 'Confirmar contraseña',
                               hintText: '••••••••',
-                              prefixIcon: Container(
-                                margin: const EdgeInsets.all(12),
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  gradient: AppColors.pinkGradient,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.lock_outline_rounded,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
+                              prefixIcon: const Icon(
+                                Icons.lock_outline_rounded,
+                                color: AppColors.primaryBlue,
                               ),
                               suffixIcon: IconButton(
                                 icon: Icon(
@@ -376,6 +382,11 @@ class _RegisterPageState extends State<RegisterPage>
                               fillColor: Colors.white.withOpacity(0.9),
                             ),
                             obscureText: _obscureConfirmPassword,
+                            onFieldSubmitted: (_) {
+                              if (!_isLoading) {
+                                _handleRegister();
+                              }
+                            },
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Por favor confirme su contraseña';
@@ -386,7 +397,193 @@ class _RegisterPageState extends State<RegisterPage>
                               return null;
                             },
                           ),
+                          const SizedBox(height: 24),
+
+                          // NIF field
+                          TextFormField(
+                            controller: _nifController,
+                            style: const TextStyle(
+                              color: AppColors.almostBlack,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: '12345678A',
+                              prefixIcon: const Icon(
+                                Icons.credit_card_rounded,
+                                color: Colors.green,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white.withOpacity(0.9),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor ingrese el NIF';
+                              }
+                              return null;
+                            },
+                          ),
                           const SizedBox(height: 16),
+
+                          // Sector field
+                          TextFormField(
+                            controller: _sectorController,
+                            style: const TextStyle(
+                              color: AppColors.almostBlack,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Ej: Tecnología, Retail, Servicios',
+                              prefixIcon: const Icon(
+                                Icons.category_rounded,
+                                color: Colors.green,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white.withOpacity(0.9),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor ingrese el sector';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Teléfono field
+                          TextFormField(
+                            controller: _telefonoController,
+                            style: const TextStyle(
+                              color: AppColors.almostBlack,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: '(+34) 123-456-789',
+                              prefixIcon: const Icon(
+                                Icons.phone_rounded,
+                                color: Colors.green,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white.withOpacity(0.9),
+                            ),
+                            keyboardType: TextInputType.phone,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Email Empresa field
+                          TextFormField(
+                            controller: _emailEmpresaController,
+                            style: const TextStyle(
+                              color: AppColors.almostBlack,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'empresa@email.com',
+                              prefixIcon: const Icon(
+                                Icons.mail_rounded,
+                                color: Colors.green,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white.withOpacity(0.9),
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value != null && value.isNotEmpty) {
+                                if (!value.contains('@')) {
+                                  return 'Por favor ingrese un email válido';
+                                }
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Dirección field
+                          TextFormField(
+                            controller: _direccionController,
+                            style: const TextStyle(
+                              color: AppColors.almostBlack,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Calle Principal 123',
+                              prefixIcon: const Icon(
+                                Icons.location_on_rounded,
+                                color: Colors.green,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white.withOpacity(0.9),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Ciudad field (full width)
+                          TextFormField(
+                            controller: _ciudadController,
+                            style: const TextStyle(
+                              color: AppColors.almostBlack,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Ciudad',
+                              prefixIcon: const Icon(
+                                Icons.location_city_rounded,
+                                color: Colors.green,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white.withOpacity(0.9),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Row: Provincia, Código Postal
+                          Row(
+                            children: [
+                              // Provincia
+                              Expanded(
+                                flex: 1,
+                                child: TextFormField(
+                                  controller: _provinciaController,
+                                  style: const TextStyle(
+                                    color: AppColors.almostBlack,
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText: 'Provincia',
+                                    prefixIcon: const Icon(
+                                      Icons.map_rounded,
+                                      color: Colors.green,
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.white.withOpacity(0.9),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              // Código Postal
+                              Expanded(
+                                flex: 1,
+                                child: TextFormField(
+                                  controller: _codigoPostalController,
+                                  style: const TextStyle(
+                                    color: AppColors.almostBlack,
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    hintText: 'Código Postal',
+                                    prefixIcon: const Icon(
+                                      Icons.mail_outline_rounded,
+                                      color: Colors.green,
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.white.withOpacity(0.9),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
 
                           // Error message
                           if (_errorMessage != null)
@@ -411,11 +608,13 @@ class _RegisterPageState extends State<RegisterPage>
 
                           // Register button
                           AnimatedGradientButton(
-                            text: _isLoading ? 'Creando...' : 'Crear Cuenta',
-                            onPressed: _isLoading 
-                              ? () {} 
-                              : () => _handleRegister(),
-                            gradient: AppColors.pinkGradient,
+                            text: _isLoading
+                                ? 'Creando cuenta...'
+                                : 'Crear Cuenta',
+                            onPressed: _isLoading
+                                ? () {}
+                                : () => _handleRegister(),
+                            gradient: AppColors.primaryGradient,
                             icon: Icons.arrow_forward_rounded,
                           ),
                           const SizedBox(height: 24),

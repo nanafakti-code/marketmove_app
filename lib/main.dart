@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:marketmove_app/src/core/theme/app_theme.dart';
-import 'package:marketmove_app/src/features/auth/pages/login_page.dart';
-import 'package:marketmove_app/src/features/auth/pages/register_page.dart';
-import 'package:marketmove_app/src/features/ventas/pages/ventas_page.dart';
-import 'package:marketmove_app/src/features/gastos/pages/gastos_page.dart';
-import 'package:marketmove_app/src/features/productos/pages/productos_page.dart';
-import 'package:marketmove_app/src/features/resumen/pages/resumen_page.dart';
-import 'package:marketmove_app/src/shared/providers/auth_provider.dart';
+import 'src/core/theme/app_theme.dart';
+import 'src/features/auth/pages/login_page.dart';
+import 'src/features/auth/pages/register_page.dart';
+import 'src/features/ventas/pages/ventas_page.dart';
+import 'src/features/gastos/pages/gastos_page.dart';
+import 'src/features/productos/pages/productos_page.dart';
+import 'src/features/resumen/pages/resumen_page.dart';
+import 'src/features/perfil/pages/perfil_page.dart';
+import 'src/features/clientes/pages/clientes_superadmin_page.dart';
+import 'src/features/clientes/pages/clientes_admin_page.dart';
+import 'src/shared/providers/auth_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,6 +59,9 @@ class MyApp extends StatelessWidget {
           '/ventas': (context) => const VentasPage(),
           '/gastos': (context) => const GastosPage(),
           '/productos': (context) => const ProductosPage(),
+          '/perfil': (context) => const PerfilPage(),
+          '/clientes': (context) => const ClientesSuperadminPage(),
+          '/clientes-admin': (context) => const ClientesAdminPage(),
         },
       ),
     );

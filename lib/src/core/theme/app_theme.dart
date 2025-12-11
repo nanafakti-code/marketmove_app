@@ -6,10 +6,10 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
+      brightness: Brightness.dark,
 
       // Color scheme
-      colorScheme: ColorScheme.light(
+      colorScheme: ColorScheme.dark(
         primary: AppColors.primaryPurple,
         secondary: AppColors.primaryBlue,
         tertiary: AppColors.primaryCyan,
