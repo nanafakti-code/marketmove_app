@@ -41,8 +41,8 @@ class EmailService {
           port: smtpPort,
           username: smtpUser,
           password: smtpPassword,
-          ssl: true,
-          allowInsecure: false,
+          ssl: false,
+          allowInsecure: true,
         );
         _fromEmail = fromEmail;
         print('[EmailService] Inicializado exitosamente');
@@ -92,8 +92,8 @@ class EmailService {
           port: smtpPort,
           username: smtpUser,
           password: smtpPassword,
-          ssl: true,
-          allowInsecure: false,
+          ssl: false,
+          allowInsecure: true,
         );
         fromEmail = dotenv.env['BREVO_SENDER_EMAIL'] ?? 'noreply@marketmove.app';
       }
