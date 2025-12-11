@@ -77,35 +77,39 @@ class _LoginPageState extends State<LoginPage>
         }
       }
     } catch (e) {
-      setState(() {
-        // Manejo de errores de autenticación
-        final errorString = e.toString().toLowerCase();
-        if (errorString.contains('invalid credentials') ||
-            errorString.contains('invalid login') ||
-            errorString.contains('invalid_credentials')) {
-          _errorMessage = 'Email o contraseña incorrectos';
-        } else if (errorString.contains('user not found') ||
-            errorString.contains('user_not_found')) {
-          _errorMessage = 'El usuario no existe';
-        } else if (errorString.contains('already registered')) {
-          _errorMessage = 'Este email ya está registrado';
-        } else if (errorString.contains('rate limit') ||
-            errorString.contains('too many')) {
-          _errorMessage = 'Demasiados intentos. Intenta más tarde';
-        } else if (errorString.contains('network') ||
-            errorString.contains('connection')) {
-          _errorMessage = 'Error de conexión. Verifica tu internet';
-        } else if (errorString.contains('unauthorized')) {
-          _errorMessage = 'Credenciales inválidas';
-        } else {
-          // Mostrar un mensaje genérico en lugar del error técnico
-          _errorMessage = 'Error al iniciar sesión. Intenta de nuevo';
-        }
-      });
+      if (mounted) {
+        setState(() {
+          // Manejo de errores de autenticación
+          final errorString = e.toString().toLowerCase();
+          if (errorString.contains('invalid credentials') ||
+              errorString.contains('invalid login') ||
+              errorString.contains('invalid_credentials')) {
+            _errorMessage = 'Email o contraseña incorrectos';
+          } else if (errorString.contains('user not found') ||
+              errorString.contains('user_not_found')) {
+            _errorMessage = 'El usuario no existe';
+          } else if (errorString.contains('already registered')) {
+            _errorMessage = 'Este email ya está registrado';
+          } else if (errorString.contains('rate limit') ||
+              errorString.contains('too many')) {
+            _errorMessage = 'Demasiados intentos. Intenta más tarde';
+          } else if (errorString.contains('network') ||
+              errorString.contains('connection')) {
+            _errorMessage = 'Error de conexión. Verifica tu internet';
+          } else if (errorString.contains('unauthorized')) {
+            _errorMessage = 'Credenciales inválidas';
+          } else {
+            // Mostrar un mensaje genérico en lugar del error técnico
+            _errorMessage = 'Error al iniciar sesión. Intenta de nuevo';
+          }
+        });
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
