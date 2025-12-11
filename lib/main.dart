@@ -17,14 +17,28 @@ import 'src/shared/providers/auth_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Cargar variables de entorno
-  await dotenv.load(fileName: ".env");
+  // Cargar variables de entorno (si existen)
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    print('⚠️ Archivo .env no encontrado. Usando valores por defecto o variables del sistema.');
+    print('   Copia .env.example a .env y configura los valores.');
+  }
 
-  // Inicializar Supabase
-  await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL'] ?? '',
-    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
-  );
+  // Obtener valores de Supabase (con fallback a strings vacíos)
+  final supabaseUrl = dotenv.maybeGet('SUPABASE_URL') ?? '';
+  final supabaseAnonKey = dotenv.maybeGet('SUPABASE_ANON_KEY') ?? '';
+
+  // Inicializar Supabase (siempre, incluso con valores vacíos para demo)
+  try {
+    await Supabase.initialize(
+      url: supabaseUrl.isEmpty ? 'https://example.supabase.co' : supabaseUrl,
+      anonKey: supabaseAnonKey.isEmpty ? 'example-key' : supabaseAnonKey,
+    );
+  } catch (e) {
+    print('⚠️ Error inicializando Supabase: $e');
+    print('   La app funcionará en modo demo sin conexión a base de datos');
+  }
 
   runApp(const MyApp());
 }
