@@ -24,6 +24,11 @@ class EmailService {
       final smtpUser = dotenv.env['BREVO_SMTP_USER'] ?? '';
       final smtpPassword = dotenv.env['BREVO_SMTP_PASSWORD'] ?? '';
       
+      print('[EmailService] Inicializando...');
+      print('[EmailService] Usuario: $smtpUser');
+      print('[EmailService] Contraseña longitud: ${smtpPassword.length}');
+      print('[EmailService] Primeros 50 caracteres: ${smtpPassword.substring(0, (smtpPassword.length > 50 ? 50 : smtpPassword.length))}...');
+      
       if (smtpUser.isNotEmpty && smtpPassword.isNotEmpty) {
         final smtpServer =
             dotenv.env['BREVO_SMTP_SERVER'] ?? 'smtp-relay.brevo.com';
@@ -40,6 +45,9 @@ class EmailService {
           allowInsecure: true,
         );
         _fromEmail = fromEmail;
+        print('[EmailService] Inicializado exitosamente');
+      } else {
+        print('[EmailService] Credenciales incompletas');
       }
     } catch (e) {
       print('[EmailService] Error al inicializar: $e');
@@ -64,6 +72,9 @@ class EmailService {
         final smtpUser = dotenv.env['BREVO_SMTP_USER'] ?? '';
         final smtpPassword = dotenv.env['BREVO_SMTP_PASSWORD'] ?? '';
         
+        print('[EmailService] Usuario SMTP detectado: $smtpUser');
+        print('[EmailService] Contraseña SMTP longitud: ${smtpPassword.length} caracteres');
+        
         if (smtpUser.isEmpty || smtpPassword.isEmpty) {
           print('[EmailService] No se encontraron credenciales de Brevo');
           return false;
@@ -73,6 +84,8 @@ class EmailService {
             dotenv.env['BREVO_SMTP_SERVER'] ?? 'smtp-relay.brevo.com';
         final smtpPortStr = dotenv.env['BREVO_SMTP_PORT'] ?? '587';
         final smtpPort = int.tryParse(smtpPortStr) ?? 587;
+        
+        print('[EmailService] Servidor SMTP: $smtpServerStr:$smtpPort');
         
         smtpServer = SmtpServer(
           smtpServerStr,
@@ -95,7 +108,9 @@ class EmailService {
         message.attachments.addAll(attachments);
       }
 
+      print('[EmailService] Intentando enviar a: $toEmail');
       await send(message, smtpServer);
+      print('[EmailService] Email enviado exitosamente');
       return true;
     } catch (e) {
       print('[EmailService] Error enviando email: $e');
