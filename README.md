@@ -1,12 +1,410 @@
-# 📱 MarketMove App - Gestión de Comercios Móvil
+# � MarketMove – App Inteligente de Análisis de Ventas y Gestión Empresarial
 
-<div align="center">
+![Flutter](https://img.shields.io/badge/Flutter-3.35.7-blue?style=flat-square&logo=flutter)
+![Dart](https://img.shields.io/badge/Dart-3.9.2-blue?style=flat-square&logo=dart)
+![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green?style=flat-square&logo=supabase)
+![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
 
-![Flutter](https://img.shields.io/badge/Flutter-3.35.7-blue?logo=flutter)
-![Dart](https://img.shields.io/badge/Dart-3.9.2-blue?logo=dart)
-![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green?logo=supabase)
-![License](https://img.shields.io/badge/License-Proprietary-red)
-![Status](https://img.shields.io/badge/Status-En%20Desarrollo-yellow)
+---
+
+## 🎯 Descripción General
+
+**MarketMove** es una aplicación multiplataforma desarrollada con **Flutter** que proporciona soluciones inteligentes para la gestión integral de empresas y análisis de ventas. Diseñada para emprendedores, pequeñas y medianas empresas (PyMEs), administradores y superadministradores, MarketMove integra funcionalidades avanzadas de control de inventario, seguimiento de ventas, gestión de gastos y análisis de mercado en una interfaz moderna y responsiva.
+
+### ✨ Valor Principal
+
+- **Gestión centralizada**: Control total sobre productos, ventas, gastos y clientes en una sola plataforma
+- **Análisis inteligente**: Dashboard con métricas clave y análisis de rendimiento
+- **Generación automática de facturas**: PDF profesionales enviados automáticamente por email
+- **Gestión de usuarios**: Roles diferenciados (Superadmin, Admin, Usuario) con permisos granulares
+- **Sincronización en tiempo real**: Datos actualizados instantáneamente gracias a Supabase
+- **Experiencia multiplataforma**: Funciona en Windows, macOS, iOS, Android y Web
+
+---
+
+## ✨ Características Principales
+
+### 📈 Dashboard Inteligente
+- Visualización de métricas clave en tiempo real
+- Gráficos interactivos de ventas, gastos e ingresos
+- Análisis de tendencias y patrones de venta
+- Resumen ejecutivo personalizable
+
+### 💰 Gestión de Ventas
+- Registro de ventas con datos de cliente y producto
+- Cálculo automático de impuestos y descuentos
+- Generación automática de facturas en PDF
+- Envío de facturas por email a clientes
+- Edición y eliminación de ventas
+- Historial completo de transacciones
+
+### 📦 Control de Inventario
+- Gestión de productos y stock
+- Actualización automática de inventario con cada venta
+- Alertas de stock bajo
+- Gestión de categorías y variantes
+
+### 💵 Seguimiento de Gastos
+- Registro categorizado de gastos operacionales
+- Análisis de gasto por categoría y período
+- Comparativa de gastos vs. ingresos
+- Proyecciones de flujo de efectivo
+
+### 👥 Gestión de Clientes y Usuarios
+- Registro de clientes con información detallada
+- Gestión de múltiples usuarios con roles diferenciados
+- Creación de cuentas de administrador por superadministrador
+- Perfiles de usuario personalizables
+- Información de contacto y dirección de facturación
+
+### 🎨 Interfaz Moderna
+- **Diseño Gradient**: Interfaz visual con tonos azules degradados (#0f3460 a tonos más claros)
+- **Responsiva**: Adaptable a cualquier tamaño de pantalla
+- **Animaciones suaves**: Transiciones fluidas y botones animados
+- **Tema consistente**: Colores, tipografía y componentes unificados
+
+### 📧 Integración de Emails
+- Envío automático de facturas por SMTP (Brevo)
+- Notificaciones por email
+- Plantillas de email personalizables
+
+### 🔐 Seguridad y Autenticación
+- Autenticación con Supabase
+- RLS (Row Level Security) para protección de datos
+- Roles y permisos granulares
+- Sesiones seguras
+
+---
+
+## 🏗️ Estructura del Proyecto
+
+```
+marketmove_app/
+│
+├── lib/
+│   ├── main.dart                          # Punto de entrada de la aplicación
+│   ├── src/
+│   │   ├── core/
+│   │   │   ├── models/                    # Modelos de datos (Producto, Venta, Gasto, etc.)
+│   │   │   └── theme/                     # Tema global, colores y estilos
+│   │   │
+│   │   ├── features/                      # Características principales
+│   │   │   ├── auth/                      # Autenticación (Login, Register)
+│   │   │   ├── resumen/                   # Dashboard principal
+│   │   │   ├── ventas/                    # Gestión de ventas
+│   │   │   ├── productos/                 # Gestión de productos
+│   │   │   ├── gastos/                    # Gestión de gastos
+│   │   │   ├── clientes/                  # Gestión de clientes y usuarios
+│   │   │   └── perfil/                    # Perfil de usuario
+│   │   │
+│   │   └── shared/
+│   │       ├── services/                  # Servicios compartidos
+│   │       │   ├── email_service.dart     # Servicio de emails (Brevo SMTP)
+│   │       │   └── pdf_service.dart       # Generación de PDFs
+│   │       ├── repositories/              # Acceso a datos (Supabase)
+│   │       │   └── data_repository.dart   # Operaciones CRUD
+│   │       ├── providers/                 # Providers de estado (Auth)
+│   │       └── widgets/                   # Widgets reutilizables
+│
+├── assets/
+│   ├── icons/                             # Iconos de la aplicación
+│   └── images/                            # Imágenes y recursos gráficos
+│
+├── android/                               # Código nativo Android
+├── ios/                                   # Código nativo iOS
+├── windows/                               # Código nativo Windows
+├── macos/                                 # Código nativo macOS
+├── web/                                   # Código web
+├── linux/                                 # Código nativo Linux
+│
+├── docs/                                  # Documentación del proyecto
+│   ├── DATABASE_SETUP.md                  # Configuración de base de datos
+│   ├── ARQUITECTURA_DIAGRAMA.md           # Diagrama de arquitectura
+│   └── ...                                # Otros archivos de documentación
+│
+├── pubspec.yaml                           # Dependencias del proyecto
+├── pubspec.lock                           # Bloqueo de versiones
+├── analysis_options.yaml                  # Configuración de análisis Dart
+├── .env.example                           # Ejemplo de variables de entorno
+├── .gitignore                             # Archivo de ignorados de Git
+└── README.md                              # Este archivo
+
+```
+
+---
+
+## 🛠️ Tecnologías Utilizadas
+
+### Frontend
+- **Flutter 3.35.7** - Framework multiplataforma para UI
+- **Dart 3.9.2** - Lenguaje de programación
+- **Provider 6.1.5+1** - Gestión de estado
+
+### Backend
+- **Supabase** - Backend como servicio (BaaS)
+  - **PostgreSQL** - Base de datos relacional
+  - **Authentication** - Sistema de autenticación
+  - **Realtime** - Sincronización en tiempo real
+  - **RLS (Row Level Security)** - Control de acceso a nivel de fila
+
+### Servicios Externos
+- **Brevo (Sendinblue)** - Envío de emails SMTP
+- **Google Fonts** - Tipografía web
+
+### Librerías Principales
+- **supabase_flutter 2.9.0** - Cliente oficial de Supabase
+- **flutter_dotenv 5.2.1** - Variables de entorno
+- **mailer 6.6.0** - Envío de emails
+- **pdf 3.11.1** - Generación de PDFs
+- **path_provider** - Acceso a rutas del sistema
+- **shared_preferences** - Almacenamiento local
+- **url_launcher** - Lanzamiento de URLs
+
+### Herramientas de Desarrollo
+- **flutter_launcher_icons 0.13.1** - Generación de iconos multiplataforma
+- **lints 6.0** - Análisis de código Dart
+- **Gradle 8.x** - Build system Android
+
+---
+
+## 📱 Plataformas Soportadas
+
+| Plataforma | Estado | Requisitos |
+|-----------|--------|-----------|
+| **Android** | ✅ Totalmente soportada | API 21+ |
+| **iOS** | ✅ Totalmente soportada | iOS 12.0+ |
+| **Windows** | ✅ Totalmente soportada | Windows 10+ |
+| **macOS** | ✅ Totalmente soportada | macOS 10.15+ |
+| **Web** | ✅ Totalmente soportada | Navegador moderno |
+| **Linux** | ✅ Totalmente soportada | Ubuntu 18.04+ |
+
+---
+
+## 🚀 Instalación y Ejecución
+
+### Requisitos Previos
+- **Flutter SDK 3.35.7+** - [Descargar Flutter](https://flutter.dev/docs/get-started/install)
+- **Dart SDK 3.9.2+** - Se incluye con Flutter
+- **Git** - Para clonar el repositorio
+- **Java JDK 11+** - Para compilar Android (opcional)
+- **Xcode 14+** - Para iOS (solo macOS)
+
+### 1. Clonar el Repositorio
+
+```bash
+git clone https://github.com/nanafakti-code/marketmove_app.git
+cd marketmove_app
+```
+
+### 2. Instalar Dependencias
+
+```bash
+flutter pub get
+```
+
+### 3. Configurar Variables de Entorno
+
+Copia `.env.example` a `.env` y completa los valores:
+
+```bash
+cp .env.example .env
+```
+
+**Edita `.env` con tus credenciales:**
+
+```env
+# Supabase
+SUPABASE_URL=tu_url_supabase
+SUPABASE_ANON_KEY=tu_anon_key
+
+# Brevo (para envío de emails)
+BREVO_SMTP_USER=tu_usuario_smtp@smtp-brevo.com
+BREVO_SMTP_PASSWORD=tu_clave_smtp
+BREVO_SENDER_EMAIL=tu_email@ejemplo.com
+```
+
+### 4. Ejecutar la Aplicación
+
+#### En Windows/macOS/Linux (Desktop)
+```bash
+flutter run
+```
+
+#### En Android
+```bash
+flutter run -d android
+```
+
+#### En iOS (solo macOS)
+```bash
+flutter run -d ios
+```
+
+#### En Web
+```bash
+flutter run -d chrome
+```
+
+#### En modo Release (Producción)
+```bash
+flutter run --release
+```
+
+### 5. Generar APK/IPA (Compilación)
+
+```bash
+# APK para Android
+flutter build apk
+
+# APK en split por arquitectura
+flutter build apk --split-per-abi
+
+# IPA para iOS
+flutter build ios
+
+# EXE para Windows
+flutter build windows
+
+# DMG para macOS
+flutter build macos
+
+# Web
+flutter build web
+```
+
+---
+
+## 📦 Configuración de Base de Datos (Supabase)
+
+Para que la aplicación funcione correctamente, necesitas configurar la base de datos en Supabase:
+
+```sql
+-- Ver documentación en docs/DATABASE_SETUP.md
+-- Ejecutar scripts SQL en docs/
+```
+
+### Tablas Principales
+
+- **users** - Usuarios del sistema
+- **empresas** - Información de empresas
+- **productos** - Catálogo de productos
+- **ventas** - Registro de transacciones
+- **gastos** - Gastos operacionales
+- **clientes_empresa** - Base de clientes
+
+Para más detalles, consulta [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md)
+
+---
+
+## 🔑 Configuración de Emails (Brevo)
+
+1. **Crear cuenta en Brevo**: https://app.brevo.com
+2. **Obtener credenciales SMTP**: Panel → Configuración → SMTP
+3. **Configurar en `.env`**: Llenar variables de BREVO_*
+
+Para más detalles, consulta [docs/BREVO_SETUP.md](docs/BREVO_SETUP.md)
+
+---
+
+## 📚 Documentación Adicional
+
+- [Guía de Ejecución Rápida](docs/COMO_EJECUTAR.md)
+- [Configuración de Base de Datos](docs/DATABASE_SETUP.md)
+- [Diagrama de Arquitectura](docs/ARQUITECTURA_DIAGRAMA.md)
+- [Diagrama Entidad-Relación](docs/DIAGRAMA_ER.md)
+- [Configuración de Autenticación GitHub](docs/AUTENTICACION_GITHUB.md)
+- [Todas las guías de documentación](docs/INDEX.md)
+
+---
+
+## 👤 Gestión de Roles
+
+### Superadministrador (Superadmin)
+- Acceso total al sistema
+- Crear/editar/eliminar administradores
+- Crear/editar/eliminar empresas
+- Ver todas las operaciones del sistema
+- Acceso a configuración avanzada
+
+### Administrador (Admin)
+- Gestión completa de su empresa
+- Crear/editar/eliminar ventas, productos, gastos
+- Gestión de clientes
+- Ver reportes de su empresa
+- Crear/editar clientes (usuarios normales)
+
+### Usuario (User)
+- Acceso limitado a funcionalidades
+- Ver sus propias operaciones
+- Crear ventas asignadas
+- Ver información de perfil
+
+---
+
+## 🔒 Seguridad
+
+- ✅ Autenticación con JWT (Supabase)
+- ✅ RLS (Row Level Security) en PostgreSQL
+- ✅ Variables de entorno para credenciales sensibles
+- ✅ No almacenar secrets en el repositorio
+- ✅ Encriptación en tránsito (HTTPS)
+
+---
+
+## 🐛 Solución de Problemas
+
+### "LateInitializationError: Field '_fromEmail@...' has not been initialized"
+Este error ocurre si no se inicializa EmailService antes de enviar emails. La solución se encuentra en [data_repository.dart](lib/src/shared/repositories/data_repository.dart) línea 150.
+
+### "Refresh token is not valid"
+Asegúrate de que tu sesión de Supabase es válida. Intenta hacer logout y login nuevamente.
+
+### "Cannot connect to Supabase"
+Verifica que:
+- Tu `.env` tiene las credenciales correctas de Supabase
+- La URL de Supabase es accesible
+- El API Key es válido
+
+---
+
+## 🖼️ Capturas
+
+*Próximamente...*
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo licencia MIT. Consulta [LICENSE](LICENSE) para más detalles.
+
+---
+
+## 👨‍💼 Autor
+
+**NanaFakti Code**
+- GitHub: [@nanafakti-code](https://github.com/nanafakti-code)
+- Proyecto: MarketMove - App Inteligente de Gestión Empresarial
+
+---
+
+## 📞 Soporte y Contacto
+
+Para reportar errores o solicitar funcionalidades, abre un [Issue](https://github.com/nanafakti-code/marketmove_app/issues) en GitHub.
+
+---
+
+## 🙏 Agradecimientos
+
+- **Flutter** por el excelente framework
+- **Supabase** por el backend robusto
+- **Brevo** por el servicio de emails
+- Toda la comunidad de desarrollo
+
+---
+
+**¡Gracias por usar MarketMove!** 🚀
+
+Última actualización: **11 de Diciembre de 2025**
 
 **Aplicación móvil profesional para gestión integral de pequeños comercios**
 
