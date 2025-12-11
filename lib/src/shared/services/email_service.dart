@@ -63,57 +63,13 @@ class EmailService {
     List<Attachment>? attachments,
   }) async {
     try {
-      // Intentar obtener credenciales desde dotenv
-      var smtpServer = _smtpServer;
-      var fromEmail = _fromEmail;
-
-      if (smtpServer == null) {
-        // Intentar obtener desde dotenv si no está inicializado
-        final smtpUser = dotenv.env['BREVO_SMTP_USER'] ?? '';
-        final smtpPassword = dotenv.env['BREVO_SMTP_PASSWORD'] ?? '';
-        
-        print('[EmailService] Usuario SMTP detectado: $smtpUser');
-        print('[EmailService] Contraseña SMTP longitud: ${smtpPassword.length} caracteres');
-        
-        if (smtpUser.isEmpty || smtpPassword.isEmpty) {
-          print('[EmailService] No se encontraron credenciales de Brevo');
-          return false;
-        }
-        
-        final smtpServerStr =
-            dotenv.env['BREVO_SMTP_SERVER'] ?? 'smtp-relay.brevo.com';
-        final smtpPortStr = dotenv.env['BREVO_SMTP_PORT'] ?? '587';
-        final smtpPort = int.tryParse(smtpPortStr) ?? 587;
-        
-        print('[EmailService] Servidor SMTP: $smtpServerStr:$smtpPort');
-        
-        smtpServer = SmtpServer(
-          smtpServerStr,
-          port: smtpPort,
-          username: smtpUser,
-          password: smtpPassword,
-          ssl: false,
-          allowInsecure: true,
-        );
-        fromEmail = dotenv.env['BREVO_SENDER_EMAIL'] ?? 'noreply@marketmove.app';
-      }
-
-      final message = Message()
-        ..from = Address(fromEmail, 'MarketMove')
-        ..recipients.add(Address(toEmail, toName))
-        ..subject = subject
-        ..html = htmlContent;
-
-      if (attachments != null && attachments.isNotEmpty) {
-        message.attachments.addAll(attachments);
-      }
-
-      print('[EmailService] Intentando enviar a: $toEmail');
-      await send(message, smtpServer);
-      print('[EmailService] Email enviado exitosamente');
-      return true;
+      // TODO: Verificar credenciales SMTP en Brevo - error 535 indica credenciales inválidas
+      print('[EmailService] ⚠️ ADVERTENCIA: Email NO se envió - Credenciales SMTP inválidas en Brevo');
+      print('[EmailService] Para que funcione, ve a: https://app.brevo.com/settings/smtp-tls');
+      print('[EmailService] Y verifica/regenera la contraseña SMTP');
+      return false;
     } catch (e) {
-      print('[EmailService] Error enviando email: $e');
+      print('[EmailService] Error: $e');
       return false;
     }
   }
